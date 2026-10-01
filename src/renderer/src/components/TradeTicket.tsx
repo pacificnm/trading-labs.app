@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { X, BookOpen, Sparkles, AlertTriangle, AlertCircle, Check } from 'lucide-react'
 import { analyze, describeOrder, money, SIDE_LABEL, TYPE_LABEL, isBuy, opensPosition, type OrderType, type Side, type Strategy, type TradeSnapshot } from '../../../shared/trade'
 import { toSpec, type Draft } from '../chart/orderDraft'
@@ -25,11 +25,17 @@ export default function TradeTicket({ symbol, draft, onChange, quote, snapshot, 
   const [riskDollars, setRiskDollars] = useState('')
   const set = (patch: Partial<Draft>) => { setError(null); onChange({ ...draft, ...patch }) }
 
+  // Working orders are filled against intraday bars. A plan without 1-minute bars uses the finest it has; without any, only plain market orders can fill.
+  const noBars = snapshot?.fillBars === null
+  const types = noBars ? TYPES.filter((t) => t === 'market') : TYPES
+  const strategies = noBars ? STRATEGIES.filter(([v]) => v === 'single') : STRATEGIES
+  useEffect(() => { if (noBars && (draft.type !== 'market' || draft.strategy !== 'single')) onChange({ ...draft, type: 'market', strategy: 'single' }) }, [noBars, draft.type, draft.strategy])
+
   const spec = useMemo(() => toSpec(draft, symbol), [draft, symbol])
   const position = snapshot?.positions.find((p) => p.symbol === symbol)
   const a = useMemo(() => {
-    const reserved = (snapshot?.orders ?? []).filter((o) => o.status === 'working' && (o.side === 'buy' || o.side === 'sell_short')).reduce((s, o) => s + o.qty * (o.limit_price ?? o.stop_price ?? 0), 0)
-    return analyze(spec, { last: quote.last, positionQty: position?.qty ?? 0, buyingPower: snapshot?.account.buyingPower ?? 0, reserved })
+    // the snapshot's buying power is already net of working orders
+    return analyze(spec, { last: quote.last, positionQty: position?.qty ?? 0, buyingPower: snapshot?.account.buyingPower ?? 0, reserved: 0, canShort: snapshot?.account.type !== 'cash' })
   }, [spec, quote.last, position, snapshot])
 
   const buy = isBuy(draft.side)
@@ -114,7 +120,7 @@ export default function TradeTicket({ symbol, draft, onChange, quote, snapshot, 
 
               <label>Order type</label>
               <select className="tk-in" value={draft.type} onChange={(e) => set({ type: e.target.value as OrderType })}>
-                {TYPES.map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
+                {types.map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
               </select>
 
               {(draft.type === 'limit' || draft.type === 'stop_limit') && (<>
@@ -138,7 +144,7 @@ export default function TradeTicket({ symbol, draft, onChange, quote, snapshot, 
 
               <label>Strategy</label>
               <select className="tk-in" value={draft.strategy} onChange={(e) => set({ strategy: e.target.value as Strategy })}>
-                {STRATEGIES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                {strategies.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             </div>
 
@@ -187,8 +193,11 @@ export default function TradeTicket({ symbol, draft, onChange, quote, snapshot, 
               </div>
             )}
 
+            {noBars && <div className="muted tk-fine">Your FMP plan has no intraday price bars, so only market orders are offered, and only while the market is open.</div>}
+            {snapshot?.fillBars && snapshot.fillBars.seconds > 60 && <div className="muted tk-fine">Orders waiting for a price are filled against {snapshot.fillBars.label} bars, because your FMP plan has no 1-minute bars. Fills are less exact.</div>}
             <div className="tk-summary">
-              <div><span>Buying power</span><b>{snapshot ? money(snapshot.account.buyingPower) : '—'}</b></div>
+              <div><span>Account</span><b>{snapshot ? snapshot.account.name : '—'}{snapshot && !/paper/i.test(snapshot.account.name) && <span className="muted"> (paper)</span>}</b></div>
+              <div><span>Buying power available</span><b>{snapshot ? money(snapshot.account.buyingPower) : '—'}</b></div>
               {position && <div><span>Position</span><b>{position.qty > 0 ? 'Long' : 'Short'} {Math.abs(position.qty)} @ {position.avg.toFixed(2)}</b></div>}
               <div><span>Est. {buy ? 'cost' : 'proceeds'}</span><b>{a.notional != null ? money(a.notional) : '—'}</b></div>
               {a.risk != null && <div><span>Risk</span><b className="down">{money(a.risk)}{equity > 0 && <span className="muted"> ({((a.risk / equity) * 100).toFixed(2)}% of equity)</span>}</b></div>}
@@ -223,6 +232,7 @@ export default function TradeTicket({ symbol, draft, onChange, quote, snapshot, 
               <div className="muted">Confirm order</div>
               {describeOrder(spec).map((l, i) => <div key={i} className="tk-line">{l}</div>)}
               <div className="tk-review-sum">
+                {snapshot && <div><span>Sent to account</span><b>{snapshot.account.name}{snapshot.account.broker ? ` · ${snapshot.account.broker}` : ''}</b></div>}
                 {a.notional != null && <div><span>Est. {buy ? 'cost' : 'proceeds'}</span><b>{money(a.notional)}</b></div>}
                 {a.risk != null && <div><span>Max risk at stop</span><b className="down">{money(a.risk)}</b></div>}
                 {a.reward != null && <div><span>Reward at target</span><b className="up">{money(a.reward)}</b></div>}

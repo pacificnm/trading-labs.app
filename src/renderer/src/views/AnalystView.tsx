@@ -1,7 +1,9 @@
 import { RangeBar, KV } from '../components/ScreenFrame'
 import ScreenFrame from '../components/ScreenFrame'
 import type { SymbolView } from '../components/SymbolTabs'
-import { sampleAnalyst, money } from '../data/sample'
+import { sampleAnalyst } from '../data/sample'
+import { usePlan } from '../fmpCaps'
+import { money } from '../format'
 import { pick, pickStr, unwrap, useAsync } from '../data/fmp'
 import { useRef, type ReactNode } from 'react'
 import type { FmpAnalyst, FmpOverview } from '../../../shared/fmp'
@@ -113,6 +115,7 @@ export function buildEstimates(a: FmpAnalyst, now = Date.now()): EstRow[] {
 }
 
 export default function AnalystView({ symbol, onNavigate, live }: { symbol: string; onNavigate: (v: SymbolView) => void; live: boolean }) {
+  const plan = usePlan()
   const force = useRef(false)
   const { data, error, loading, reload } = useAsync<View>(async () => {
     const f = force.current; force.current = false
@@ -210,6 +213,7 @@ export default function AnalystView({ symbol, onNavigate, live }: { symbol: stri
             ) : <div className="muted">No rating history available.</div>}
           </Card>
 
+          {!plan.unavailable.has('estimates') && (
           <Card title="Analyst estimates" sub="consensus by fiscal year">
             {v.estimates.length > 0 ? (
               <>
@@ -241,6 +245,7 @@ export default function AnalystView({ symbol, onNavigate, live }: { symbol: stri
               </>
             ) : <div className="muted">No estimates available.</div>}
           </Card>
+          )}
         </div>
 
         <div style={{ marginTop: 14 }}>

@@ -47,6 +47,30 @@ Open a daily chart with volume. Find three long-wick candles. For each, write do
     ]
   }),
   doc({
+    id: 'candlestick-patterns', title: 'Candlestick patterns', category: 'Foundations', level: 'beginner', minutes: 20,
+    summary: 'A gallery of 41 named candlestick patterns, what each one says about buyers and sellers, and real examples Claude can find on your chart.',
+    tags: ['price action', 'candlesticks', 'patterns', 'reversal'],
+    chartSetup: { range: '6M', interval: '1day', type: 'candles', studies: [{ study: 'volume' }] },
+    body: `
+## How to use this page
+Pick a pattern below to see a close-up drawing, how to spot it, what it says about buyers and sellers, what confirms it and when it fails. Press **Claude, show me** and Claude scans the bars on your chart with exact rules, marks every match it finds and explains what price did afterwards.
+
+## Read patterns as evidence, not forecasts
+- A pattern is a **description of one to three candles**. It becomes useful only with context: the trend before it, a nearby support or resistance level, and volume.
+- Most patterns come in a **reversal** form (they matter after a trend) and need **confirmation**: the next candle must move the way the pattern suggests.
+- Plenty of textbook patterns fail. Expect to see examples that went the wrong way, and decide where you would have been wrong (the stop) before you care about the pattern.
+- Bullish and bearish labels describe what the pattern *suggests*. They are not predictions.
+
+## Practice
+Choose three patterns. For each, ask Claude to find examples on a stock you know, then look at what happened over the next five bars. Write down how many worked, how many did not and what the failures had in common.
+`,
+    quiz: [
+      { q: 'A hammer and a hanging man have the same shape. What separates them?', a: 'The trend before them. A hammer appears after a decline and suggests buyers stepping in; a hanging man appears after a rise and warns that sellers are testing the highs.' },
+      { q: 'Why wait for the next candle before acting on most reversal patterns?', a: 'The pattern is only a hint that control may be changing. A candle that moves the expected way confirms it, and a stop beyond the pattern gives you a defined risk.' },
+      { q: 'A bullish engulfing candle appears in the middle of a sideways range. How much weight should it get?', a: 'Little. Engulfing patterns matter after a decline and ideally at support, with strong volume. In a range it is ordinary back-and-forth.' }
+    ]
+  }),
+  doc({
     id: 'support-resistance', title: 'Support and resistance', category: 'Foundations', level: 'beginner', minutes: 15,
     summary: 'Find the price zones where a stock has repeatedly turned, and use them for entries, stops and targets.',
     tags: ['levels', 'swing highs', 'zones'],

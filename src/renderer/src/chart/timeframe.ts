@@ -42,17 +42,34 @@ export const barCount = (range: Range, interval: Interval) => Math.ceil(tradingD
 const MIN_BARS = 4
 const MAX_BARS = 10000
 
+// Intervals the user's FMP plan does not include. Set from the connection check (see fmpCaps.tsx); every control and tool goes through
+// isAllowed, so one list keeps the toolbar, Claude's set_chart and strategy setups consistent. Daily bars are never blocked: without them there is no chart.
+let blocked: ReadonlySet<Interval> = new Set()
+export const setBlockedIntervals = (ids: Interval[]) => { blocked = new Set(ids.filter((i) => i !== '1day')) }
+export const isBlocked = (interval: Interval) => blocked.has(interval)
+
 export const isAllowed = (range: Range, interval: Interval) => {
+  if (blocked.has(interval)) return false
   const n = barCount(range, interval)
   return n >= MIN_BARS && n <= MAX_BARS
 }
 
 export const allowedIntervals = (range: Range) => INTERVALS.filter((i) => isAllowed(range, i.id))
+/** Ranges that still have at least one usable interval (a 1-day range needs intraday bars). */
+export const availableRanges = () => RANGES.filter((r) => allowedIntervals(r.id).length > 0)
 
 /** Keep the interval if it works for the range, otherwise the closest one that does. */
 export function coerceInterval(range: Range, interval: Interval): Interval {
   if (isAllowed(range, interval)) return interval
   const order = INTERVALS.map((i) => i.id)
   const from = order.indexOf(interval)
-  return allowedIntervals(range).sort((a, b) => Math.abs(order.indexOf(a.id) - from) - Math.abs(order.indexOf(b.id) - from))[0].id
+  const options = allowedIntervals(range)
+  return options.length ? options.sort((a, b) => Math.abs(order.indexOf(a.id) - from) - Math.abs(order.indexOf(b.id) - from))[0].id : '1day'
+}
+
+/** A range/interval pair that works with the current plan: the pair itself if usable, else the closest interval, else a daily chart. */
+export function usableTimeframe(range: Range, interval: Interval): { range: Range; interval: Interval } {
+  const i = coerceInterval(range, interval)
+  if (isAllowed(range, i)) return { range, interval: i }
+  return { range: '6M', interval: '1day' }
 }

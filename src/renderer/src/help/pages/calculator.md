@@ -21,7 +21,7 @@ The calculator also applies your **limits**, so the result is never bigger than 
 | **Symbol** | The stock. It starts on the chart's symbol. Type another and press **Enter**. The small **refresh** icon reloads the live price |
 | **Direction** | **Long** (you expect the price to rise) or **Short** (you expect it to fall) |
 | **Entry price** | The price you plan to buy at. With **follow live price** ticked it tracks the live price, so every number updates as the price moves. Untick it to fix the entry at a price you choose |
-| **Account** | **Paper account** uses your current equity, or **Custom amount** lets you size a trade for a different account |
+| **Account** | **Paper account** uses the equity of your **active** paper account, or **Custom amount** lets you size a trade for a different account |
 | **Risk per trade** | How much you are willing to lose: a **% of account** or a fixed number of **Dollars**. The dollar amount is shown beside it |
 | **Win rate** | Your guess at how often trades like this win, as a percent. It is used only for expected value |
 | **Commission** | The total cost of getting in and out, in dollars. The paper account charges none, so it starts at 0, but you can enter a figure to see how costs affect a trade |
@@ -61,7 +61,7 @@ The share count is the **smallest** of four numbers:
 - **Your risk budget**: how many shares keep the loss within the amount you chose.
 - **Your max position size**: the most you allow in a single stock.
 - **Your max total invested**: the room left under your overall limit.
-- **Your buying power**: what the account can actually afford.
+- **Your buying power**: what the active account can actually afford, after orders that are waiting to fill. A cash account has less than a margin account with the same cash.
 
 When something other than risk is the limit, a message says so and tells you that your **real risk is lower** than you budgeted. In the screenshot, 143 shares are limited by the 25% position rule, so the true risk is $491, less than the $1,060 budget.
 

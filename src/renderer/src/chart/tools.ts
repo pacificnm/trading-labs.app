@@ -4,7 +4,7 @@ import type { JournalItem } from '../../../shared/journal'
 import type { Candle } from './indicators'
 import { STUDIES, studyById, type StudyDef } from './studies'
 import { DRAWING_COLORS, type Drawing, type DrawingPoint } from './drawings'
-import { allowedIntervals, coerceInterval, intervalInfo, isAllowed, INTERVALS, RANGES, type Interval, type Range } from './timeframe'
+import { allowedIntervals, coerceInterval, intervalInfo, isAllowed, isBlocked, INTERVALS, RANGES, type Interval, type Range } from './timeframe'
 import { chartKey } from './useChartData'
 import type { ChartType } from './settings'
 import { analyze, describeOrder, money, type OrderSpec, type Side, type OrderType, type StopLeg } from '../../../shared/trade'
@@ -21,6 +21,7 @@ import { fetchChain, fetchHv30 } from '../data/options'
 import { activity, atmIv, contractsFor, expectedMove, maxPain, straddle, strikeRows, termStructure } from '../../../shared/options'
 import { DEFAULT_CALC, fetchAtr, fetchLast, toInput, type CalcState } from './calcState'
 import { calculate, DEFAULT_RULES, type Rules } from '../../../shared/position'
+import { findPattern, patternById } from '../../../shared/candlePatterns'
 import { getDisplay, resolveTz, tzAbbr } from '../display'
 
 export interface ToolReply { ok: boolean; text: string; image?: string }
@@ -230,6 +231,30 @@ const handlers: Record<string, (i: Input) => Promise<ToolReply>> = {
     return { ok: true, text: `Swing points (most recent first; a swing needs ${left} bars before and ${right} after, so the last ${right} bars can't be swings yet):\n` + recent.map((f) => `swing ${f.type}: ${iso(f.t, intra)} @ ${price(f.p)}`).join('\n') }
   },
 
+  async find_candle_pattern(i) {
+    const s = await ready()
+    const intra = isIntraday(s)
+    const p = patternById(String(i.pattern)) ?? fail(`Unknown pattern "${String(i.pattern)}". Use one of the ids in the tool schema.`)
+    const max = Math.max(1, Math.min(10, Math.floor(Number(i.max ?? 4)) || 4))
+    const c = s.candles
+    const hits = findPattern(p!.id, c)
+    const head = `${s.symbol} ${s.settings.interval} bars${s.sample ? ' (SAMPLE DATA, not real prices)' : ''}, ${c.length} loaded. Rough rarity of this pattern: ${p!.rarity}.`
+    if (hits.length === 0) return { ok: true, text: `${head} No "${p!.name}" found in the loaded bars. Say so plainly; offer a longer range or another symbol rather than forcing an example.` }
+    const recent = hits.slice(-max).reverse()
+    if (i.mark !== false) {
+      await showChart()
+      const above = p!.bias !== 'bullish'
+      for (const k of recent) { const b = c[k]; const pt = { time: b.time, price: above ? b.high : b.low }; addDrawing({ type: 'marker', p1: pt, p2: pt, color: DRAWING_COLORS.marker, label: p!.name, direction: above ? 'down' : 'up' }) }
+    }
+    const lines = recent.map((k) => {
+      const b = c[k], start = c[k - p!.size + 1]
+      const after = c.slice(k + 1, k + 6)
+      const then = after.length === 0 ? 'no bars after it yet' : `${after.length < 5 ? `only ${after.length} bar${after.length === 1 ? '' : 's'} so far: ` : 'next 5 bars: '}${(((after[after.length - 1].close - b.close) / b.close) * 100).toFixed(2)}% from its close (range ${price(Math.min(...after.map((x) => x.low)))} to ${price(Math.max(...after.map((x) => x.high)))})`
+      return `${iso(start.time, intra)}${p!.size > 1 ? ` to ${iso(b.time, intra)}` : ''}: O ${price(b.open)} H ${price(b.high)} L ${price(b.low)} C ${price(b.close)}; ${then}`
+    })
+    return { ok: true, text: `${head} Found ${hits.length} "${p!.name}" (${p!.bias}) in ${c.length} bars (about 1 in ${Math.round(c.length / hits.length)}); showing the ${recent.length} most recent${i.mark !== false ? ' (marked on the chart)' : ''}, newest first. Ids/times as returned; OHLC is the last candle of the pattern.\n${lines.join('\n')}\nRemember: some of these will have gone the other way. Say which did and which did not.` }
+  },
+
   async list_available_studies() {
     return { ok: true, text: STUDIES.map((d) => `${d.id} — ${d.name} [${d.category}, ${d.pane === 'overlay' ? 'on price chart' : 'own pane'}] params: ${d.params.map((p) => `${p.key}=${p.default}`).join(', ') || 'none'} | colors: ${studyOutputs(d).flatMap((o) => (o.tones ? [`${o.name}:up`, `${o.name}:down`] : [o.name])).join(', ')}`).join('\n') }
   },
@@ -295,6 +320,7 @@ const handlers: Record<string, (i: Input) => Promise<ToolReply>> = {
     if (!RANGES.some((r) => r.id === range)) fail(`Unknown range "${String(i.range)}". Valid: ${RANGES.map((r) => r.id).join(' ')}.`)
     let interval = (i.interval ?? before.settings.interval) as Interval
     if (!INTERVALS.some((x) => x.id === interval)) fail(`Unknown interval "${String(i.interval)}". Valid: ${INTERVALS.map((x) => x.id).join(' ')}.`)
+    if (i.interval !== undefined && isBlocked(interval)) fail(`The user's market-data plan does not include ${interval} bars. Available for ${range}: ${allowedIntervals(range).map((x) => x.id).join(', ') || 'none; use a longer range'}.`)
     if (i.interval !== undefined && !isAllowed(range, interval)) fail(`Interval ${interval} does not fit range ${range}. For ${range} use one of: ${allowedIntervals(range).map((x) => x.id).join(', ')}.`)
     if (i.interval === undefined) interval = coerceInterval(range, interval)
     const type = (i.chart_type ?? before.settings.type) as ChartType
@@ -378,7 +404,7 @@ const handlers: Record<string, (i: Input) => Promise<ToolReply>> = {
     return {
       ok: true,
       text: JSON.stringify({
-        equity: a.equity, cash: a.cash, buyingPower: a.buyingPower, openPL: a.unrealizedPl, realizedPL: a.realizedPl, totalReturnPct: a.totalReturnPct,
+        account: { name: a.name, brokerage: a.broker || null, kind: 'paper (simulated money)', type: a.type === 'cash' ? 'cash account (no margin, no shorting)' : 'margin account (2:1)' }, equity: a.equity, cash: a.cash, buyingPowerAvailable: a.buyingPower, committedToWorkingOrders: a.reserved, openPL: a.unrealizedPl, realizedPL: a.realizedPl, totalReturnPct: a.totalReturnPct,
         positions: snap.positions.map((p) => ({ symbol: p.symbol, side: p.qty > 0 ? 'long' : 'short', qty: Math.abs(p.qty), avgPrice: p.avg, last: p.mark, unrealizedPL: p.unrealized })),
         workingOrders: snap.orders.filter((o) => o.status === 'working' || o.status === 'pending').map((o) => ({ id: o.id, symbol: o.symbol, side: o.side, qty: o.qty, type: o.type, role: o.role, status: o.status, limit: o.limit_price, stop: o.stop_price, tif: o.tif, by: o.source }))
       }, null, 1)
@@ -429,8 +455,7 @@ const handlers: Record<string, (i: Input) => Promise<ToolReply>> = {
     const qr = await window.api.fmp.quotes([symbol])
     const last: number = (qr.ok && qr.data[0] ? Number(qr.data[0]['price']) : 0) || fail(`Could not get a live price for ${symbol}.`)
     const snap = await window.api.trade.snapshot()
-    const reserved = snap.orders.filter((o) => o.status === 'working' && (o.side === 'buy' || o.side === 'sell_short')).reduce((sum, o) => sum + o.qty * (o.limit_price ?? o.stop_price ?? 0), 0)
-    const a = analyze(spec, { last, positionQty: snap.positions.find((p) => p.symbol === symbol)?.qty ?? 0, buyingPower: snap.account.buyingPower, reserved })
+    const a = analyze(spec, { last, positionQty: snap.positions.find((p) => p.symbol === symbol)?.qty ?? 0, buyingPower: snap.account.buyingPower, reserved: 0, canShort: snap.account.type !== 'cash' })
     if (a.errors.length) fail(`The ticket was not opened because:\n- ${a.errors.join('\n- ')}\nAdjust the order and call prepare_order again.`)
 
     if (symbol !== s0.symbol) { bridge().setSymbol(symbol); await ready() }
@@ -475,7 +500,7 @@ const handlers: Record<string, (i: Input) => Promise<ToolReply>> = {
     const s = bridge().snapshot()
     const spec = toSpec(d, s.symbol)
     const snap = bridge().trade()
-    const a = analyze(spec, { last: bridge().lastPrice(), positionQty: snap?.positions.find((p) => p.symbol === s.symbol)?.qty ?? 0, buyingPower: snap?.account.buyingPower ?? 0, reserved: 0 })
+    const a = analyze(spec, { last: bridge().lastPrice(), positionQty: snap?.positions.find((p) => p.symbol === s.symbol)?.qty ?? 0, buyingPower: snap?.account.buyingPower ?? 0, reserved: 0, canShort: snap?.account.type !== 'cash' })
     return { ok: true, text: JSON.stringify({ spec, preparedBy: d.source, summary: describeOrder(spec), errors: a.errors, warnings: a.warnings, risk: a.risk, reward: a.reward, rewardToRisk: a.rr, note: 'The order has NOT been sent unless it appears in get_account working orders or positions.' }, null, 1) }
   },
 

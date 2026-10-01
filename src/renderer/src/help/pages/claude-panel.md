@@ -101,7 +101,7 @@ Every message you send carries a snapshot of the app, so Claude does not need to
 
 - the **screen** you are on and the **symbol** you are viewing,
 - the chart's **time frame, chart type, scale and active studies**,
-- your **paper account**, **positions** and how many orders are working,
+- your **active paper account** (its name, brokerage, type and figures), **positions** and how many orders are working,
 - your **watchlists**, and the **time zone** you chose.
 
 It does not see your API keys. It also reads the **chart data** itself with its tools when it needs the candles, rather than from memory. See *What Claude can do*.

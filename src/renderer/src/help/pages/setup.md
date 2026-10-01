@@ -9,7 +9,7 @@ Trading Lab works the moment you open it, but it needs two keys to do everything
 
 Options chains do not need a key: they come from a free delayed public feed.
 
-> **FMP plans.** A free FMP key is enough to try the app, but intraday bars (1 minute to 4 hours) and several research screens need a paid plan. After you add your key, **Test connection** shows exactly which data your plan can reach.
+> **FMP plans.** A free FMP key is enough to try the app, but intraday bars (1 minute to 4 hours) and several research screens need a paid plan. After you add your key, the app checks which data your plan can reach and **hides what it cannot use**, so you will not run into error messages for features you do not have. **Settings** shows the result under *What your FMP plan includes*.
 
 ## Step 1: Open Settings
 
@@ -26,7 +26,7 @@ The screen has three sections: **Time & display**, **Anthropic API key** and **M
 3. Click **Save key** (or press **Enter**). A green notice confirms it was saved, and the status bar changes from *Market data: sample (no FMP key)* to a live status.
 4. Click **Test connection**. The app checks each data feed and lists a ✓ or ✗ next to each one:
    - A ✓ means that feed works with your key and plan.
-   - A ✗ shows the reason, such as *requires a higher plan*. Those screens will show a message instead of data. Everything else keeps working.
+   - A ✗ shows the reason, such as *requires a higher plan*. The features that need that feed are **hidden** (chart intervals, screens, tabs and sections), so you are not left with error messages. Everything else keeps working. The app also runs this check by itself when you save a key.
    - The list also includes **Claude data tools (MCP)**, which lets Claude look up company data, and the delayed **options** feed.
 
 Charts, the watchlist dropdown, the index ticker and every research screen switch from sample to live data straight away. There is no need to restart.
@@ -60,7 +60,7 @@ Daily, weekly and monthly bars are dates, so they do not change with this settin
 
 ## Check that everything works
 
-- The status bar at the bottom left shows **Paper account** with a balance of **$100,000** and buying power of **$200,000**. That is your simulated starting balance.
+- The status bar at the bottom left shows **Paper account** with a balance of **$100,000** and buying power of **$200,000**. That is your simulated starting balance. Later you can add more accounts, rename them and set balances to match your real ones. See *Account*.
 - Open the **Charts** screen. The "Sample data" banner at the top of the chart should be gone and the price should match a live quote.
 - Ask Claude a question, such as *Walk me through the AAPL chart setup*.
 
@@ -69,7 +69,7 @@ Daily, weekly and monthly bars are dates, so they do not change with this settin
 | What you see | What to do |
 |---|---|
 | Chart still says *Sample data* | The FMP key is missing or was rejected. Re-save it and run **Test connection**. |
-| Test connection shows ✗ for some feeds | Those feeds are not included in your FMP plan. The rest still work. |
+| Test connection shows ✗ for some feeds | Those feeds are not included in your FMP plan, and the features that need them are hidden. The rest still work. Untick **Hide features my plan does not include** in Settings to show them anyway. |
 | Chat says the key is invalid or the account has no credit | Check the key in the Anthropic Console and your billing balance. |
 | Settings says keys are stored unencrypted | Start your system keyring, then save the keys again. |
 

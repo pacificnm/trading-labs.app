@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite'
 import { app } from 'electron'
 import { join } from 'path'
-import { initJournalSchema, initStrategySchema, initTradingSchema } from './schema'
+import { initAccountSchema, retireLegacyTables, initJournalSchema, initStrategySchema, initTradingSchema } from './schema'
 
 let db: DatabaseSync
 
@@ -11,26 +11,6 @@ export function getDb(): DatabaseSync {
   db.exec(`
     PRAGMA journal_mode = WAL;
     PRAGMA foreign_keys = ON;
-    CREATE TABLE IF NOT EXISTS account (
-      id INTEGER PRIMARY KEY CHECK (id = 1),
-      cash REAL NOT NULL,
-      starting_cash REAL NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS watchlist (
-      symbol TEXT PRIMARY KEY,
-      added_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE TABLE IF NOT EXISTS trades (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      symbol TEXT NOT NULL,
-      side TEXT NOT NULL CHECK (side IN ('buy','sell')),
-      qty REAL NOT NULL,
-      price REAL NOT NULL,
-      status TEXT NOT NULL DEFAULT 'open',
-      opened_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      closed_at TEXT,
-      close_price REAL
-    );
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
@@ -48,9 +28,10 @@ export function getDb(): DatabaseSync {
       content TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
-    INSERT OR IGNORE INTO account (id, cash, starting_cash) VALUES (1, 100000, 100000);
   `)
   initTradingSchema(db)
+  initAccountSchema(db)
+  retireLegacyTables(db)
   initJournalSchema(db)
   initStrategySchema(db)
   return db

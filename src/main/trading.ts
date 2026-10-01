@@ -1,6 +1,8 @@
 import type { DatabaseSync } from 'node:sqlite'
 import type { Bar } from '../shared/fmp'
 import { isMarketOpen, sessionCloseAfter } from '../shared/nytime'
+import { buyingPowerFor, type AccountType } from '../shared/accounts'
+import { nextBar, type FillGrain } from '../shared/fmpCaps'
 import {
   analyze, exitSide, isBuy, opensPosition, SIDE_LABEL,
   type AccountView, type FillRow, type OrderRow, type OrderSpec, type PositionView, type TradeResult, type TradeSnapshot
@@ -8,21 +10,24 @@ import {
 
 export interface Market {
   quote(symbol: string): Promise<number | null>
-  /** 1-minute bars from `fromEpoch` until now, ascending */
+  /** bars of the current grain from `fromEpoch` until now, ascending */
   bars(symbol: string, fromEpoch: number): Promise<Bar[]>
+  /** the bar size the plan can supply for filling orders (null = no intraday bars at all). Defaults to 1-minute. */
+  grain?(): FillGrain | null
 }
+
+const ONE_MINUTE: FillGrain = { interval: '1min', seconds: 60, offset: 0, label: '1-minute' }
 export interface EngineEvent { text: string }
 
-const MARGIN = 2 // buying power = 2 x equity - gross market value (Reg T style)
 const ACTIVE = "('pending','working')"
 
 /**
- * Paper-trading engine. Orders fill against real 1-minute bars: a stop or limit is filled if the bar's
+ * Paper-trading engine. Orders fill against real intraday bars (1-minute when the plan has them, otherwise the finest it does): a stop or limit is filled if the bar's
  * range touched it (at the trigger price, or at the open if the bar gapped through). When a stop and a
  * target are both touched in the same bar, the stop is assumed to have been hit first.
  * Not modelled: partial fills, commissions/slippage, extended hours, market holidays.
  */
-export function createEngine(db: DatabaseSync, market: Market, clock: () => number = () => Math.floor(Date.now() / 1000)) {
+export function createEngine(db: DatabaseSync, market: Market, clock: () => number = () => Math.floor(Date.now() / 1000), activeAccount: () => number = () => 1) {
   const one = <T>(sql: string, ...a: (string | number | null)[]) => db.prepare(sql).get(...a) as T | undefined
   const all = <T>(sql: string, ...a: (string | number | null)[]) => db.prepare(sql).all(...a) as T[]
   const run = (sql: string, ...a: (string | number | null)[]) => db.prepare(sql).run(...a)
@@ -30,15 +35,17 @@ export function createEngine(db: DatabaseSync, market: Market, clock: () => numb
     db.exec('BEGIN')
     try { const r = fn(); db.exec('COMMIT'); return r } catch (e) { db.exec('ROLLBACK'); throw e }
   }
-  const nextMinute = (t: number) => Math.ceil(t / 60) * 60
+  const grain = (): FillGrain | null => (market.grain ? market.grain() : ONE_MINUTE)
+  const nextBarTime = (t: number) => nextBar(t, grain() ?? ONE_MINUTE)
 
   // ---------------------------------------------------------------- account
-  const account = () => one<{ cash: number; starting_cash: number }>('SELECT cash, starting_cash FROM account WHERE id = 1')!
-  const positionQty = (symbol: string) => one<{ qty: number }>('SELECT qty FROM positions WHERE symbol = ?', symbol)?.qty ?? 0
+  // Every trading row belongs to an account. New orders go to the active account; working orders in all accounts keep filling.
+  const account = (id: number) => one<{ id: number; name: string; type: AccountType; broker: string; url: string; cash: number; starting_cash: number }>('SELECT id, name, type, broker, url, cash, starting_cash FROM accounts WHERE id = ?', id)!
+  const positionQty = (accountId: number, symbol: string) => one<{ qty: number }>('SELECT qty FROM positions WHERE account_id = ? AND symbol = ?', accountId, symbol)?.qty ?? 0
 
-  async function values(): Promise<{ cash: number; startingCash: number; equity: number; buyingPower: number; positions: PositionView[]; realized: number; unrealized: number }> {
-    const acc = account()
-    const rows = all<{ symbol: string; qty: number; avg_price: number }>('SELECT symbol, qty, avg_price FROM positions ORDER BY symbol')
+  async function values(accountId: number = activeAccount()): Promise<{ cash: number; startingCash: number; equity: number; buyingPower: number; positions: PositionView[]; realized: number; unrealized: number }> {
+    const acc = account(accountId)
+    const rows = all<{ symbol: string; qty: number; avg_price: number }>('SELECT symbol, qty, avg_price FROM positions WHERE account_id = ? ORDER BY symbol', accountId)
     const marks = await Promise.all(rows.map((r) => market.quote(r.symbol).catch(() => null)))
     let mv = 0, gross = 0, unreal = 0
     const positions: PositionView[] = rows.map((r, i) => {
@@ -51,35 +58,40 @@ export function createEngine(db: DatabaseSync, market: Market, clock: () => numb
       return { symbol: r.symbol, qty: r.qty, avg: r.avg_price, mark, marketValue: mark == null ? null : r.qty * mark, unrealized: u, unrealizedPct: u == null ? null : (u / Math.abs(r.avg_price * r.qty)) * 100 }
     })
     const equity = acc.cash + mv
-    const realized = one<{ s: number | null }>('SELECT SUM(realized_pl) AS s FROM fills')?.s ?? 0
-    return { cash: acc.cash, startingCash: acc.starting_cash, equity, buyingPower: Math.max(0, MARGIN * equity - gross), positions, realized, unrealized: unreal }
+    const realized = one<{ s: number | null }>('SELECT SUM(realized_pl) AS s FROM fills WHERE account_id = ?', accountId)?.s ?? 0
+    return { cash: acc.cash, startingCash: acc.starting_cash, equity, buyingPower: buyingPowerFor(acc.type, equity, acc.cash, gross), positions, realized, unrealized: unreal }
   }
 
-  const reserved = () =>
-    all<OrderRow>(`SELECT * FROM orders WHERE status = 'working'`)
+  const reserved = (accountId: number) =>
+    all<OrderRow>(`SELECT * FROM orders WHERE status = 'working' AND account_id = ?`, accountId)
       .filter((o) => opensPosition(o.side))
       .reduce((s, o) => s + o.qty * (o.limit_price ?? o.stop_price ?? 0), 0)
 
   async function snapshot(): Promise<TradeSnapshot> {
-    const v = await values()
-    const orders = all<OrderRow>(`SELECT * FROM orders WHERE status IN ${ACTIVE} ORDER BY id DESC`)
-    const recent = all<OrderRow>(`SELECT * FROM orders WHERE status NOT IN ${ACTIVE} ORDER BY id DESC LIMIT 80`)
-    const fills = all<FillRow>('SELECT * FROM fills ORDER BY id DESC LIMIT 80')
-    const account: AccountView = {
-      cash: v.cash, startingCash: v.startingCash, equity: v.equity, buyingPower: v.buyingPower,
+    const id = activeAccount()
+    const v = await values(id)
+    const acc = account(id)
+    const held = reserved(id)
+    const orders = all<OrderRow>(`SELECT * FROM orders WHERE status IN ${ACTIVE} AND account_id = ? ORDER BY id DESC`, id)
+    const recent = all<OrderRow>(`SELECT * FROM orders WHERE status NOT IN ${ACTIVE} AND account_id = ? ORDER BY id DESC LIMIT 80`, id)
+    const fills = all<FillRow>('SELECT * FROM fills WHERE account_id = ? ORDER BY id DESC LIMIT 80', id)
+    const account_: AccountView = {
+      id, name: acc.name, broker: acc.broker, url: acc.url, type: acc.type === 'cash' ? 'cash' : 'margin',
+      cash: v.cash, startingCash: v.startingCash, equity: v.equity, buyingPower: Math.max(0, v.buyingPower - held), reserved: held,
       realizedPl: v.realized, unrealizedPl: v.unrealized, totalReturnPct: v.startingCash ? ((v.equity - v.startingCash) / v.startingCash) * 100 : 0
     }
-    return { account, positions: v.positions, orders: [...orders, ...recent], fills, at: clock() }
+    const g = grain()
+    return { account: account_, positions: v.positions, orders: [...orders, ...recent], fills, at: clock(), fillBars: g ? { label: g.label, seconds: g.seconds } : null }
   }
 
   // ---------------------------------------------------------------- placing
   type NewOrder = Pick<OrderRow, 'role' | 'side' | 'type' | 'tif' | 'status'> & Partial<Pick<OrderRow, 'limit_price' | 'stop_price' | 'trail_amount' | 'trail_unit' | 'parent_id' | 'extreme' | 'expires_at'>>
-  function insert(group: string, spec: OrderSpec, o: NewOrder, now: number): number {
+  function insert(accountId: number, group: string, spec: OrderSpec, o: NewOrder, now: number): number {
     const r = run(
-      `INSERT INTO orders (group_id, parent_id, role, symbol, side, qty, type, limit_price, stop_price, trail_amount, trail_unit, extreme, tif, status, created_at, start_at, expires_at, source, note)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      group, o.parent_id ?? null, o.role, spec.symbol, o.side, spec.qty, o.type, o.limit_price ?? null, o.stop_price ?? null,
-      o.trail_amount ?? null, o.trail_unit ?? null, o.extreme ?? null, o.tif, o.status, now, nextMinute(now), o.expires_at ?? null, spec.source ?? 'user', spec.note ?? null
+      `INSERT INTO orders (account_id, group_id, parent_id, role, symbol, side, qty, type, limit_price, stop_price, trail_amount, trail_unit, extreme, tif, status, created_at, start_at, expires_at, source, note)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      accountId, group, o.parent_id ?? null, o.role, spec.symbol, o.side, spec.qty, o.type, o.limit_price ?? null, o.stop_price ?? null,
+      o.trail_amount ?? null, o.trail_unit ?? null, o.extreme ?? null, o.tif, o.status, now, nextBarTime(now), o.expires_at ?? null, spec.source ?? 'user', spec.note ?? null
     )
     return Number(r.lastInsertRowid)
   }
@@ -88,17 +100,21 @@ export function createEngine(db: DatabaseSync, market: Market, clock: () => numb
     const spec: OrderSpec = { ...specIn, symbol: specIn.symbol.trim().toUpperCase() }
     const last = await market.quote(spec.symbol).catch(() => null)
     if (last == null) return { ok: false, errors: [`No live price for ${spec.symbol}. Check the symbol and your market-data connection.`] }
-    const v = await values()
-    const a = analyze(spec, { last, positionQty: positionQty(spec.symbol), buyingPower: v.buyingPower, reserved: reserved() })
+    const accountId = activeAccount()
+    const v = await values(accountId)
+    const a = analyze(spec, { last, positionQty: positionQty(accountId, spec.symbol), buyingPower: v.buyingPower, reserved: reserved(accountId), canShort: account(accountId).type !== 'cash' })
     if (a.errors.length) return { ok: false, errors: a.errors }
 
+    if (!grain() && (spec.type !== 'market' || spec.strategy !== 'single'))
+      return { ok: false, errors: ['Your market-data plan has no intraday bars, so only plain market orders can be filled. Limit, stop, bracket and OCO orders need intraday data.'] }
+    if (!grain() && !isMarketOpen(clock())) return { ok: false, errors: ['The market is closed and your plan has no intraday bars, so a market order cannot be filled until the market opens.'] }
     const now = clock()
     const group = crypto.randomUUID()
     const expires = spec.tif === 'day' ? sessionCloseAfter(now) : null
     const ids: number[] = []
     tx(() => {
       const mainStatus = 'working' as const
-      const mainId = insert(group, spec, {
+      const mainId = insert(accountId, group, spec, {
         role: spec.strategy === 'bracket' ? 'entry' : spec.strategy === 'oco' ? 'oco_a' : 'single',
         side: spec.side, type: spec.type, tif: spec.tif, status: mainStatus,
         limit_price: spec.limit ?? null, stop_price: spec.stop ?? null, trail_amount: spec.trailAmount ?? null, trail_unit: spec.trailUnit ?? null,
@@ -108,10 +124,10 @@ export function createEngine(db: DatabaseSync, market: Market, clock: () => numb
       const p = spec.protect
       if (spec.strategy === 'bracket') {
         const exit = exitSide(spec.side)
-        ids.push(insert(group, spec, { role: 'target', parent_id: mainId, side: exit, type: 'limit', tif: 'gtc', status: 'pending', limit_price: spec.target ?? null }, now))
-        if (p) ids.push(insert(group, spec, { role: 'stop', parent_id: mainId, side: exit, type: p.type, tif: 'gtc', status: 'pending', stop_price: p.stop ?? null, limit_price: p.limit ?? null, trail_amount: p.trailAmount ?? null, trail_unit: p.trailUnit ?? null }, now))
+        ids.push(insert(accountId, group, spec, { role: 'target', parent_id: mainId, side: exit, type: 'limit', tif: 'gtc', status: 'pending', limit_price: spec.target ?? null }, now))
+        if (p) ids.push(insert(accountId, group, spec, { role: 'stop', parent_id: mainId, side: exit, type: p.type, tif: 'gtc', status: 'pending', stop_price: p.stop ?? null, limit_price: p.limit ?? null, trail_amount: p.trailAmount ?? null, trail_unit: p.trailUnit ?? null }, now))
       } else if (spec.strategy === 'oco' && p) {
-        ids.push(insert(group, spec, { role: 'oco_b', side: spec.side, type: p.type, tif: spec.tif, status: 'working', stop_price: p.stop ?? null, limit_price: p.limit ?? null, trail_amount: p.trailAmount ?? null, trail_unit: p.trailUnit ?? null, extreme: p.type === 'trailing_stop' ? last : null, expires_at: expires }, now))
+        ids.push(insert(accountId, group, spec, { role: 'oco_b', side: spec.side, type: p.type, tif: spec.tif, status: 'working', stop_price: p.stop ?? null, limit_price: p.limit ?? null, trail_amount: p.trailAmount ?? null, trail_unit: p.trailUnit ?? null, extreme: p.type === 'trailing_stop' ? last : null, expires_at: expires }, now))
       }
     })
     const events = await process(spec.symbol)
@@ -127,7 +143,7 @@ export function createEngine(db: DatabaseSync, market: Market, clock: () => numb
 
   function fill(o: OrderRow, price: number, time: number, events: EngineEvent[]): boolean {
     const buy = isBuy(o.side)
-    const pos = one<{ qty: number; avg_price: number }>('SELECT qty, avg_price FROM positions WHERE symbol = ?', o.symbol)
+    const pos = one<{ qty: number; avg_price: number }>('SELECT qty, avg_price FROM positions WHERE account_id = ? AND symbol = ?', o.account_id, o.symbol)
     const held = pos?.qty ?? 0
     // exits must match a real position (a leftover stop after the position was closed elsewhere)
     if (o.side === 'sell' && held < o.qty) { cancelRow(o.id, 'No shares to sell', 'rejected'); events.push({ text: `${o.symbol}: ${SIDE_LABEL[o.side]} ${o.qty} rejected (no position).` }); return false }
@@ -138,19 +154,19 @@ export function createEngine(db: DatabaseSync, market: Market, clock: () => numb
       const newQty = held + signed
       if (opensPosition(o.side)) {
         const avg = ((Math.abs(held) * (pos?.avg_price ?? 0)) + o.qty * price) / Math.abs(newQty)
-        run('INSERT INTO positions (symbol, qty, avg_price) VALUES (?,?,?) ON CONFLICT(symbol) DO UPDATE SET qty = excluded.qty, avg_price = excluded.avg_price', o.symbol, newQty, avg)
+        run('INSERT INTO positions (account_id, symbol, qty, avg_price) VALUES (?,?,?,?) ON CONFLICT(account_id, symbol) DO UPDATE SET qty = excluded.qty, avg_price = excluded.avg_price', o.account_id, o.symbol, newQty, avg)
       } else {
         realized = (buy ? (pos!.avg_price - price) : (price - pos!.avg_price)) * o.qty
-        if (newQty === 0) run('DELETE FROM positions WHERE symbol = ?', o.symbol)
-        else run('UPDATE positions SET qty = ? WHERE symbol = ?', newQty, o.symbol)
+        if (newQty === 0) run('DELETE FROM positions WHERE account_id = ? AND symbol = ?', o.account_id, o.symbol)
+        else run('UPDATE positions SET qty = ? WHERE account_id = ? AND symbol = ?', newQty, o.account_id, o.symbol)
       }
-      run('UPDATE account SET cash = cash + ? WHERE id = 1', buy ? -o.qty * price : o.qty * price)
-      run('INSERT INTO fills (order_id, symbol, side, qty, price, time, realized_pl) VALUES (?,?,?,?,?,?,?)', o.id, o.symbol, o.side, o.qty, price, time, realized)
+      run('UPDATE accounts SET cash = cash + ? WHERE id = ?', buy ? -o.qty * price : o.qty * price, o.account_id)
+      run('INSERT INTO fills (account_id, order_id, symbol, side, qty, price, time, realized_pl) VALUES (?,?,?,?,?,?,?,?)', o.account_id, o.id, o.symbol, o.side, o.qty, price, time, realized)
       run(`UPDATE orders SET status = 'filled', filled_at = ?, fill_price = ? WHERE id = ?`, time, price, o.id)
       const exits = ['target', 'stop', 'oco_a', 'oco_b']
       if (exits.includes(o.role)) for (const s of all<OrderRow>(`SELECT * FROM orders WHERE group_id = ? AND id != ? AND status IN ${ACTIVE}`, o.group_id, o.id)) if (exits.includes(s.role)) cancelRow(s.id, 'Other leg of the OCO filled')
       if (o.role === 'entry') {
-        run(`UPDATE orders SET status = 'working', start_at = ?, extreme = CASE WHEN type = 'trailing_stop' THEN ? ELSE extreme END WHERE parent_id = ? AND status = 'pending'`, nextMinute(time + 1), price, o.id)
+        run(`UPDATE orders SET status = 'working', start_at = ?, extreme = CASE WHEN type = 'trailing_stop' THEN ? ELSE extreme END WHERE parent_id = ? AND status = 'pending'`, nextBarTime(time + 1), price, o.id)
       }
     })
     events.push({ text: `${o.symbol}: ${SIDE_LABEL[o.side]} ${o.qty} filled @ ${price.toFixed(2)}${opensPosition(o.side) ? '' : ` (P/L ${realized >= 0 ? '+' : '-'}$${Math.abs(realized).toFixed(2)})`}` })
@@ -213,13 +229,15 @@ export function createEngine(db: DatabaseSync, market: Market, clock: () => numb
 
     const live = working()
     if (live.length === 0) return events
+    const g = grain()
+    if (!g) return events // no intraday bars on this plan: only fresh market orders (above) can fill
     const since = Math.min(...live.map((o) => o.start_at))
     const bars = await market.bars(symbol, since).catch(() => [] as Bar[])
     const state = new Map<number, St>(live.map((o) => [o.id, { extreme: o.extreme, triggered: !!o.triggered }]))
     const checked = new Map<number, number>(live.map((o) => [o.id, o.checked_to]))
 
     for (const bar of bars) {
-      const closed = bar.time + 60 <= now
+      const closed = bar.time + (g?.seconds ?? 60) <= now
       // stops are evaluated before targets, so an ambiguous bar counts as the stop being hit first
       const order = (o: OrderRow) => (o.role === 'target' ? 1 : 0)
       for (const o of working().sort((a, b) => order(a) - order(b))) {
@@ -266,17 +284,20 @@ export function createEngine(db: DatabaseSync, market: Market, clock: () => numb
   }
 
   async function closePosition(symbol: string): Promise<TradeResult<{ orderIds: number[] }>> {
-    const qty = positionQty(symbol)
+    const qty = positionQty(activeAccount(), symbol)
     if (qty === 0) return { ok: false, errors: [`No position in ${symbol}.`] }
-    for (const o of all<OrderRow>(`SELECT * FROM orders WHERE symbol = ? AND status IN ${ACTIVE}`, symbol)) cancelRow(o.id, 'Position closed')
+    for (const o of all<OrderRow>(`SELECT * FROM orders WHERE symbol = ? AND account_id = ? AND status IN ${ACTIVE}`, symbol, activeAccount())) cancelRow(o.id, 'Position closed')
     const r = await place({ symbol, side: qty > 0 ? 'sell' : 'buy_to_cover', qty: Math.abs(qty), type: 'market', tif: 'day', strategy: 'single', source: 'user', note: 'Close position' })
     return r.ok ? { ok: true, orderIds: r.orderIds } : r
   }
 
+  /** Clears the active account's orders, fills and positions and restarts it from `startingCash`. Other accounts are untouched. */
   function reset(startingCash: number): void {
+    const id = activeAccount()
     tx(() => {
-      run('DELETE FROM orders'); run('DELETE FROM fills'); run('DELETE FROM positions')
-      run('UPDATE account SET cash = ?, starting_cash = ? WHERE id = 1', startingCash, startingCash)
+      run('DELETE FROM orders WHERE account_id = ?', id); run('DELETE FROM fills WHERE account_id = ?', id); run('DELETE FROM positions WHERE account_id = ?', id)
+      run('DELETE FROM account_transfers WHERE account_id = ?', id)
+      run('UPDATE accounts SET cash = ?, starting_cash = ? WHERE id = ?', startingCash, startingCash, id)
     })
   }
 
@@ -286,6 +307,6 @@ export function createEngine(db: DatabaseSync, market: Market, clock: () => numb
     return events
   }
 
-  return { snapshot, place, cancel, modify, closePosition, reset, tick, process, values, positionQty }
+  return { snapshot, place, cancel, modify, closePosition, reset, tick, process, values, positionQty: (symbol: string) => positionQty(activeAccount(), symbol) }
 }
 export type Engine = ReturnType<typeof createEngine>

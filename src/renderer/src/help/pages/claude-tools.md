@@ -1,4 +1,4 @@
-Claude in Trading Lab is more than a chat box. It has a set of **tools**: actions it can take inside the app, on your behalf, while it talks to you. It can read your chart, mark it up, check your account, look up news and data, size a trade, write in your journal and teach from the strategy library. There are **45 built-in tools**, plus extra market-data lookups. This page explains what they let Claude do, and the limits that always apply.
+Claude in Trading Lab is more than a chat box. It has a set of **tools**: actions it can take inside the app, on your behalf, while it talks to you. It can read your chart, mark it up, check your account, look up news and data, size a trade, write in your journal and teach from the strategy library. There are **46 built-in tools**, plus extra market-data lookups. This page explains what they let Claude do, and the limits that always apply.
 
 > **The one rule that never changes:** Claude can **prepare** an order ticket for you to review, but it can **never place, change or cancel an order**. Every trade is sent by you.
 
@@ -20,6 +20,7 @@ When you ask something that needs your screen or your data, Claude decides which
 | **Read chart state** | Learns what you are looking at: symbol, time frame, chart type, how many candles are loaded, and the studies on the chart |
 | **Read price bars** | Reads the candles (open, high, low, close, volume) and a summary of the loaded window |
 | **Find swing highs/lows** | Finds turning points exactly, instead of judging them by eye |
+| **Find candlestick patterns** | Scans the loaded bars for a named pattern (hammer, engulfing, morning star…) with exact rules, marks the matches and reports what price did next |
 | **List studies** and **Read study values** | Knows which indicators exist and reads real RSI, MACD or moving average numbers |
 | **Look at the chart** | Takes a picture of your chart, with your studies and drawings, to check how things look |
 
@@ -50,7 +51,7 @@ Claude's drawings are tagged as its own, so the pen menu's **Remove Claude's dra
 
 | Tool | What it does |
 |---|---|
-| **Read paper account** | Reads your equity, cash, buying power, profit and loss, and positions |
+| **Read paper account** | Reads the **active** account's name, brokerage and type, and its equity, cash, buying power, profit and loss, positions and working orders. Claude cannot switch, create, change or fund accounts |
 | **Get live quote** | Gets the latest price, change, day range and volume for a symbol |
 | **Prepare order ticket** | Opens the order ticket filled in with a proposed entry, stop, target and size, and draws the lines on your chart. It also saves the idea in your journal |
 | **Read order ticket** | Reads the ticket as it is now, including any changes you made |
@@ -78,6 +79,8 @@ You review every field, change what you like, and decide whether to send it. See
 | **Read market performance** | Sector and industry performance, valuations and the biggest movers |
 | **Read Congress trades** | Latest filings, one symbol, or one member |
 | **Read options chain** | The delayed chain with implied volatility, expected move and put/call ratios. For learning only, since the paper account trades stocks |
+
+Tools that need market data your plan does not include (news, analyst ratings, the screener, congressional trades, market performance) are **not offered to Claude**, and it is told what is missing, so it will not attempt them. See *API keys*.
 
 On top of these, Claude can use **extra market-data lookups** from your data provider, such as company profiles, financial statements, ratios, earnings dates and more, when your connection includes them. Settings → Test connection shows whether that connection works. Claude should say where a figure came from.
 

@@ -4,8 +4,11 @@ import { formatDateTime, localTz, resolveTz, tzAbbr, MARKET_TZ, type DisplaySett
 import { isMarketOpen } from '../../../shared/nytime'
 import type { KeyStatus } from '../../../shared/chat'
 import type { FmpTestRow } from '../../../shared/fmp'
+import { CAPS, fillGrain } from '../../../shared/fmpCaps'
+import { usePlan } from '../fmpCaps'
 
 export default function SettingsView({ onDataKeyChange, display, onDisplayChange }: { onDataKeyChange: () => void; display: DisplaySettings; onDisplayChange: (d: DisplaySettings) => void }) {
+  const plan = usePlan()
   const [status, setStatus] = useState<KeyStatus | null>(null)
   const [key, setKey] = useState('')
   const [fmp, setFmp] = useState<KeyStatus | null>(null)
@@ -33,7 +36,9 @@ export default function SettingsView({ onDataKeyChange, display, onDisplayChange
       const rowsAll = [...r.data, optRow]
       setTests(rowsAll)
       const good = rowsAll.filter((t) => t.ok).length
+      const notInPlan = rowsAll.filter((t) => t.status === 'plan').length
       if (good === rowsAll.length) toast.success(`All ${good} data feeds responded`, { title: 'Connection OK' })
+      else if (notInPlan > 0) toast.info(`${good} of ${rowsAll.length} data feeds responded. ${notInPlan} ${notInPlan === 1 ? 'is' : 'are'} not in your FMP plan, so the features that need ${notInPlan === 1 ? 'it' : 'them'} are hidden.`, { title: 'Connected' })
       else toast.warning(`${good} of ${rowsAll.length} data feeds responded. Expand the list below for details.`, { title: 'Partly connected' })
     } else { setTestErr(r.error); toast.error(r.error, { title: 'Connection failed' }) }
     setMcp(await window.api.fmp.mcpStatus())
@@ -121,6 +126,20 @@ export default function SettingsView({ onDataKeyChange, display, onDisplayChange
                   ? <details><summary>{mcp.count} tools via {mcp.transport}</summary><div className="fields">{mcp.sample?.join(', ')}{(mcp.count ?? 0) > 12 ? ', …' : ''}</div></details>
                   : <span className="muted">{mcp.error}</span>}
               </div>
+            </div>
+          )}
+          {fmp && fmp.source !== 'none' && plan.caps && (
+            <div className="plan-box">
+              <h4>What your FMP plan includes</h4>
+              <div className="muted">Checked {new Date(plan.caps.checkedAt * 1000).toLocaleString()}. It is checked again when you save a key or click Test connection, and automatically if something turns out not to be in your plan.</div>
+              <div className="plan-grid">
+                {CAPS.map((c) => {
+                  const missing = plan.caps!.unavailable.includes(c.id)
+                  return <div key={c.id} className={'plan-item' + (missing ? ' off' : '')} title={missing ? `Not included: ${c.lost}` : ''}><span className={missing ? 'down' : 'up'}>{missing ? '✗' : '✓'}</span> {c.label}{missing && <span className="muted"> · {c.lost}</span>}</div>
+                })}
+              </div>
+              {(() => { const g = fillGrain(plan.caps.unavailable); return <div className="muted">{g ? `Limit and stop orders are filled against ${g.label} bars.` : 'There are no intraday bars on this plan, so only plain market orders can be filled.'}</div> })()}
+              <label className="plan-toggle"><input type="checkbox" checked={plan.hideMissing} onChange={(e) => plan.setHideMissing(e.target.checked)} /> Hide features my plan does not include</label>
             </div>
           )}
           {tests && (

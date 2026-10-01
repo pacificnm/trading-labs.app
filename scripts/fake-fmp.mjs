@@ -1,5 +1,5 @@
 // Stand-in market data server for screenshots and tests: node scripts/fake-fmp.mjs
-// then run the app with FMP_API_KEY=demo FMP_BASE_URL=http://localhost:8787/stable. Prices are made up (AAPL ends at 184.30).
+// then run the app with FMP_API_KEY=demo FMP_BASE_URL=http://localhost:8787/stable. Set FAKE_RESTRICT=path,path to mimic a plan without those endpoints. Prices are made up (AAPL ends at 184.30).
 import http from 'node:http'
 const PORT = 8787
 let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647
@@ -20,6 +20,8 @@ function daily(from, to) {
 http.createServer((req, res) => {
   const u = new URL(req.url, 'http://x'); const path = u.pathname.replace(/^\/stable\//, '').replace(/^\//, '')
   const q = Object.fromEntries(u.searchParams); let body = []
+  // FAKE_RESTRICT=historical-chart/1min,senate,... answers those paths the way FMP answers endpoints outside the user's plan
+  if ((process.env.FAKE_RESTRICT || '').split(',').filter(Boolean).some((r) => path.startsWith(r))) { res.statusCode = 402; res.setHeader('content-type', 'application/json'); return res.end(JSON.stringify({ 'Error Message': 'Premium Endpoint: This endpoint is not available under your current subscription. Please upgrade.' })) }
   if (path === 'quote') { const idx = { '^GSPC': 5850.2, '^DJI': 42310.5, '^IXIC': 18420.7, '^RUT': 2210.9, '^VIX': 15.62, '^FTSE': 8290.4, '^GDAXI': 19040.1, '^N225': 38450.6 }; const hh = [...String(q.symbol)].reduce((x, c) => (x * 31 + c.charCodeAt(0)) % 997, 7); const pr = idx[q.symbol] ?? (q.symbol === 'AAPL' ? END : +(60 + (hh % 340) + 0.45).toFixed(2)); body = [{ symbol: q.symbol, name: q.symbol === 'AAPL' ? 'Apple Inc.' : q.symbol, exchange: 'NASDAQ', price: pr, change: +(pr * (q.symbol === 'AAPL' ? 0.0066 : ((hh % 41) - 17) / 1000)).toFixed(2), changePercentage: q.symbol === 'AAPL' ? 0.66 : +(((hh % 41) - 17) / 10).toFixed(2), volume: 41e6, previousClose: +(pr * 0.9934).toFixed(2), open: +(pr * 0.996).toFixed(2), dayLow: +(pr * 0.991).toFixed(2), dayHigh: +(pr * 1.004).toFixed(2), yearLow: +(pr * 0.68).toFixed(2), yearHigh: +(pr * 1.06).toFixed(2), avgVolume: 52e6, marketCap: 2.85e12, pe: 29.4, eps: 6.27 }] }
   else if (path === 'profile') body = [{ symbol: q.symbol, companyName: 'Apple Inc.', exchange: 'NASDAQ', sector: 'Technology', industry: 'Consumer Electronics', beta: 1.24, lastDividend: 1.0, marketCap: 2.85e12 }]
   else if (path === 'quote-short') body = [{ symbol: q.symbol, price: END, change: 1.2, volume: 41e6 }]

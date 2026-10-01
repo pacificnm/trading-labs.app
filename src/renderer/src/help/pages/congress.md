@@ -98,7 +98,7 @@ Above the table, drop-downs and a box narrow what you see. The heading shows how
 ## When something is missing
 
 - **Without an FMP key**, the screen asks you to add one. See *First-time setup*.
-- **An error message with Retry** appears if the data could not be loaded. Some plans do not include every disclosure feed, and **Settings → Test connection** shows what yours reaches.
+- **An error message with Retry** appears if the data could not be loaded. Some plans do not include the disclosure feeds; when none is available this screen is hidden from the ribbon, and **Settings → What your FMP plan includes** says so.
 - *No trades match.* appears when the filters hide everything.
 - On **By member**, the screen asks you to enter a name before it shows anything.
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, X } from 'lucide-react'
 import { pick, pickStr } from '../data/fmp'
-import { money, pct } from '../data/sample'
+import { money, pct } from '../format'
 import type { WatchList } from '../../../shared/watchlists'
 
 interface Row { price: number | null; change: number | null; pct: number | null }

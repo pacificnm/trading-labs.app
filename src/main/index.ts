@@ -12,6 +12,7 @@ import { createStrategies } from './strategies'
 import { createOptionsClient } from './options'
 import { isMarketOpen } from '../shared/nytime'
 import { createWatchlists } from './watchlists'
+import { createAccounts } from './accounts'
 
 // One data folder whatever this build is called (dev run, unpacked folder, AppImage or .deb), so the
 // database and saved keys are shared between them.
@@ -43,6 +44,7 @@ function createWindow(): void {
     show: !shotPath,
     backgroundColor: '#1e1e1e',
     title: 'Trading Lab',
+    icon: join(app.getAppPath(), 'build/icon.png'),
     frame: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -134,20 +136,19 @@ app.whenReady().then(() => {
     console.log(JSON.stringify({
       app: app.getName(), version: app.getVersion(), packaged: app.isPackaged, electron: process.versions.electron, node: process.versions.node, chromium: process.versions.chrome,
       arch: process.arch, userData: app.getPath('userData'), rendererPresent: existsSync(join(__dirname, '../renderer/index.html')), preloadPresent: existsSync(join(__dirname, '../preload/index.js')),
-      database: { tables: tables.length, has: ['orders', 'journal_entries', 'strategy_docs', 'watchlists', 'fmp_cache'].filter((t) => tables.includes(t)) },
+      database: { tables: tables.length, has: ['accounts', 'orders', 'fills', 'positions', 'journal_entries', 'strategy_docs'].filter((t) => tables.includes(t)) },
       keyring: { available: safeStorage.isEncryptionAvailable(), backend: safeStorage.getSelectedStorageBackend?.() },
       savedKeys: { fmp: key('fmp_key'), anthropic: key('anthropic_key') }
     }, null, 2))
     app.exit(0)
     return
   }
-  ipcMain.handle('account:get', () => db.prepare('SELECT cash, starting_cash FROM account WHERE id = 1').get())
-  ipcMain.handle('trades:open', () => db.prepare("SELECT * FROM trades WHERE status = 'open' ORDER BY opened_at DESC").all())
   const secrets = makeSecrets(db)
   const mcp = makeFmpMcp(secrets)
   registerChat(db, secrets, mcp)
   const fmpApi = registerFmp(secrets, db)
-  const engine = createEngine(db, { quote: (s) => fmpApi.quote(s), bars: (s, from) => fmpApi.bars1m(s, from) })
+  const accounts = createAccounts(db)
+  const engine = createEngine(db, { quote: (s) => fmpApi.quote(s), bars: (s, from) => fmpApi.barsFine(s, from), grain: fmpApi.grain }, undefined, accounts.activeId)
   const broadcast = (events: { text: string }[] = []) => BrowserWindow.getAllWindows().forEach((w) => w.webContents.send('trade:update', events))
   const guard = async <T>(fn: () => Promise<T>) => { try { return await fn() } catch (e) { return { ok: false as const, errors: [(e as Error).message] } } }
   ipcMain.handle('trade:snapshot', () => engine.snapshot())
@@ -156,6 +157,19 @@ app.whenReady().then(() => {
   ipcMain.handle('trade:modify', (_e, id: number, patch) => guard(async () => { const r = engine.modify(id, patch); broadcast(); return r }))
   ipcMain.handle('trade:close', (_e, symbol: string) => guard(async () => { const r = await engine.closePosition(symbol); broadcast(); return r }))
   ipcMain.handle('trade:reset', (_e, cash: number) => { engine.reset(cash); broadcast() })
+  // paper accounts: one is active at a time (new orders go there), but working orders in every account keep filling
+  const acct = <T>(fn: () => T | Promise<T>) => async () => { try { const data = await fn(); broadcast(); return { ok: true as const, data } } catch (e) { return { ok: false as const, error: (e as Error).message } } }
+  ipcMain.handle('acct:list', async (_e, withEquity?: boolean) => {
+    const list = accounts.list()
+    if (withEquity) await Promise.all(list.map(async (a) => { a.equity = await engine.values(a.id).then((v) => v.equity).catch(() => undefined) }))
+    return { list, activeId: accounts.activeId() }
+  })
+  ipcMain.handle('acct:transfers', (_e, id: number) => accounts.transfers(id))
+  ipcMain.handle('acct:create', (_e, input, balance: number) => acct(() => accounts.create(input, balance))())
+  ipcMain.handle('acct:update', (_e, id: number, patch) => acct(() => accounts.update(id, patch))())
+  ipcMain.handle('acct:setBalance', (_e, id: number, cash: number, note?: string) => acct(() => accounts.setBalance(id, cash, note))())
+  ipcMain.handle('acct:setActive', (_e, id: number) => acct(() => { accounts.setActive(id) })())
+  ipcMain.handle('acct:remove', (_e, id: number) => acct(() => { accounts.remove(id) })())
   const wl = createWatchlists(db)
   const wlChanged = <T>(v: T): T => { BrowserWindow.getAllWindows().forEach((w) => w.webContents.send('watchlists:changed')); return v }
   ipcMain.handle('wl:lists', () => wl.lists())

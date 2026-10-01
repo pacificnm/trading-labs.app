@@ -36,7 +36,13 @@ export interface FmpAnalyst {
 }
 export interface FmpFundamentals { ratios: Rec | null; metrics: Rec | null; income: Rec[]; balance: Rec[]; cashflow: Rec[] }
 
-export interface FmpTestRow { name: string; path: string; ok: boolean; detail: string; fields?: string[] }
+export interface FmpTestRow {
+  name: string; path: string; ok: boolean; detail: string; fields?: string[]
+  /** ok = data came back, empty = answered with nothing, plan = not in the user's FMP plan, error = anything else */
+  status?: 'ok' | 'empty' | 'plan' | 'error'
+  /** which plan capability this probe checks (see shared/fmpCaps.ts) */
+  cap?: string
+}
 
 export interface NewsArticle {
   symbol: string

@@ -1,4 +1,5 @@
-// Deterministic per-symbol sample data until the FMP feed is connected.
+// Deterministic per-symbol sample data, shown only while no market-data key is configured (see CLAUDE.md invariant 4).
+import { compact } from '../format'
 export function rng(symbol: string, salt = 0) {
   let seed = ([...symbol].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7) + salt) >>> 0
   return () => {
@@ -10,9 +11,6 @@ export function rng(symbol: string, salt = 0) {
   }
 }
 
-export const money = (n: number, d = 2) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: d, maximumFractionDigits: d })
-export const compact = (n: number) => Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 2 }).format(n)
-export const pct = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`
 
 export function sampleQuote(symbol: string) {
   const r = rng(symbol)
@@ -71,26 +69,5 @@ export function sampleFundamentals(symbol: string) {
     profitability: { 'Gross margin': `${(35 + r() * 30).toFixed(1)}%`, 'Operating margin': `${(12 + r() * 25).toFixed(1)}%`, 'Net margin': `${(8 + r() * 20).toFixed(1)}%`, ROE: `${(8 + r() * 30).toFixed(1)}%`, ROA: `${(4 + r() * 14).toFixed(1)}%` },
     balance: { Cash: compact(rev0 * 0.3), 'Total debt': compact(rev0 * (0.2 + r() * 0.5)), 'Debt / equity': (0.2 + r() * 1.4).toFixed(2), 'Current ratio': (0.9 + r() * 1.6).toFixed(2), 'Shares outstanding': compact(q.marketCap / q.price) },
     years
-  }
-}
-
-export function sampleOptions(symbol: string) {
-  const r = rng(symbol, 3)
-  const q = sampleQuote(symbol)
-  const iv = 0.22 + r() * 0.35
-  const base = Math.round(q.price / 5) * 5
-  const chain = [-3, -2, -1, 0, 1, 2, 3].map((k) => {
-    const strike = base + k * 5
-    const callMid = Math.max(0.05, q.price - strike + q.price * iv * 0.12 * (1 - Math.abs(k) * 0.12))
-    const putMid = Math.max(0.05, strike - q.price + q.price * iv * 0.12 * (1 - Math.abs(k) * 0.12))
-    return {
-      strike, callBid: callMid * 0.98, callAsk: callMid * 1.02, callVol: Math.round(r() * 8000), callOI: Math.round(r() * 30000), callIV: iv * (1 + k * 0.01),
-      putBid: putMid * 0.98, putAsk: putMid * 1.02, putVol: Math.round(r() * 8000), putOI: Math.round(r() * 30000), putIV: iv * (1 - k * 0.012)
-    }
-  })
-  return {
-    iv, ivRank: Math.round(r() * 100), ivPercentile: Math.round(r() * 100), hv30: iv * (0.8 + r() * 0.3),
-    putCall: 0.5 + r() * 0.9, callVolume: Math.round(1e5 + r() * 3e5), putVolume: Math.round(0.6e5 + r() * 2.5e5),
-    openInterest: Math.round(1e6 + r() * 4e6), expectedMove: q.price * iv * Math.sqrt(30 / 365), price: q.price, chain
   }
 }

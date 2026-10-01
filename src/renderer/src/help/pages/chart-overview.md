@@ -54,7 +54,7 @@ While a drawing tool is active, the chart does not scroll or zoom, so your click
 
 - **Sample data banner.** An amber note at the top says the chart is showing made-up prices because no FMP key has been added. Click it to go to Settings. See *First-time setup*.
 - **Loading** while data is being fetched.
-- **An error message with Retry** if the data could not be loaded, for example when you are offline or your plan does not include that interval.
+- **An error message with Retry** if the data could not be loaded, for example when you are offline. Intervals your plan does not include are not offered, so that is not normally the cause.
 - **Colored lines across the chart.** These are order lines for a draft or a working order, with a label. You can drag them to change a price. See *Order lines on the chart*.
 - **Drawings made by Claude.** Claude can draw levels, trendlines and Fibonacci on your chart while it explains. You can remove them without touching your own: pen menu → **Remove Claude's drawings**.
 

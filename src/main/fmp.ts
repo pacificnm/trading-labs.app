@@ -1,10 +1,12 @@
-import { ipcMain } from 'electron'
+import { BrowserWindow, ipcMain } from 'electron'
 import type { Secrets } from './secrets'
 import { nyToEpoch, nyDate, nyParts } from '../shared/nytime'
 import { normalizeTrade } from '../shared/congress'
 import { normalizeScreenerRow } from '../shared/screener'
 import type { DatabaseSync } from 'node:sqlite'
 import { ResponseCache, createRequester, newCtx, type Ctx } from './fmpCache'
+import { fillGrain, type CapId, type FillGrain, type FmpCaps } from '../shared/fmpCaps'
+import { readCaps as loadCaps, saveCaps } from './capsStore'
 
 // FMP doesn't say which time zone news timestamps use. Read them as New York time first; if that puts a
 // brand-new article in the future they must be UTC, and the reading sticks for the rest of the session.
@@ -31,6 +33,7 @@ const day = (d: Date) => d.toISOString().slice(0, 10)
 
 export function registerFmp(secrets: Secrets, db: DatabaseSync | null = null) {
   const store = new ResponseCache(db)
+  let noteRefusal: () => void = () => undefined
   const key = () => secrets.get(KEY_NAME) ?? process.env['FMP_API_KEY'] ?? null
 
   // One network call. Caching, merging of identical requests and stale-on-error live in createRequester.
@@ -46,7 +49,7 @@ export function registerFmp(secrets: Secrets, db: DatabaseSync | null = null) {
     try { body = JSON.parse(text) } catch { body = text }
     const apiMsg = typeof body === 'object' && body && !Array.isArray(body) ? String((body as Rec)['Error Message'] ?? (body as Rec)['message'] ?? '') : typeof body === 'string' ? body.slice(0, 200) : ''
     if (res.status === 401 || /invalid api key/i.test(apiMsg)) throw new FmpError('FMP rejected the API key.', 'auth')
-    if (res.status === 402 || res.status === 403 || /not available under your current subscription|upgrade/i.test(apiMsg)) throw new FmpError(apiMsg || 'Not included in your FMP plan.', 'plan')
+    if (res.status === 402 || res.status === 403 || /not available under your current subscription|upgrade/i.test(apiMsg)) { noteRefusal(); throw new FmpError(apiMsg || 'Not included in your FMP plan.', 'plan') }
     if (res.status === 429) throw new FmpError('FMP rate limit reached. Try again shortly.', 'rate')
     if (!res.ok) throw new FmpError(apiMsg || `FMP returned HTTP ${res.status}`, 'other')
     if (apiMsg && !Array.isArray(body)) throw new FmpError(apiMsg, 'other')
@@ -100,8 +103,8 @@ export function registerFmp(secrets: Secrets, db: DatabaseSync | null = null) {
     })
 
   ipcMain.handle('fmp:key:status', () => secrets.status(KEY_NAME, 'FMP_API_KEY'))
-  ipcMain.handle('fmp:key:set', (_e, k: string) => { store.clear(); secrets.set(KEY_NAME, k) })
-  ipcMain.handle('fmp:key:clear', () => { store.clear(); secrets.clear(KEY_NAME) })
+  ipcMain.handle('fmp:key:set', (_e, k: string) => { store.clear(); secrets.set(KEY_NAME, k); writeCaps(null); checkSoon(1_000) })
+  ipcMain.handle('fmp:key:clear', () => { store.clear(); secrets.clear(KEY_NAME); writeCaps(null) })
   ipcMain.handle('fmp:cache:stats', () => store.stats())
   ipcMain.handle('fmp:cache:clear', () => { store.clear() })
 
@@ -231,56 +234,94 @@ export function registerFmp(secrets: Secrets, db: DatabaseSync | null = null) {
   }))
 
   // Probes each endpoint the app uses so plan coverage and field names can be checked.
-  wrap('fmp:test', async (): Promise<FmpTestRow[]> => {
+  const runProbes = async (): Promise<{ rows: FmpTestRow[]; aborted: boolean }> => {
     const to = day(new Date()), from = day(new Date(Date.now() - 7 * 86400000))
     const lastWeekday = () => { let t = Date.now() / 1000 - 86400; while ([0, 6].includes(nyParts(t).weekday)) t -= 86400; return nyDate(t) } // yesterday or earlier: always has a full session
-    const probes: [string, string, Record<string, string | number>][] = [
-      ['Quote', 'quote', { symbol: 'AAPL' }],
-      ['Index quote', 'quote', { symbol: '^GSPC' }],
-      ['Daily history', 'historical-price-eod/full', { symbol: 'AAPL', from, to }],
-      ['1-minute bars', 'historical-chart/1min', { symbol: 'AAPL', from, to }],
-      ['5-minute bars', 'historical-chart/5min', { symbol: 'AAPL', from, to }],
-      ['1-hour bars', 'historical-chart/1hour', { symbol: 'AAPL', from, to }],
-      ['4-hour bars', 'historical-chart/4hour', { symbol: 'AAPL', from, to }],
-      ['Symbol search', 'search-symbol', { query: 'AAPL', limit: 3 }],
-      ['Stock news', 'news/stock', { symbols: 'AAPL', limit: 3 }],
-      ['General market news', 'news/general-latest', { limit: 3 }],
-      ['Company profile', 'profile', { symbol: 'AAPL' }],
-      ['Analyst consensus', 'grades-consensus', { symbol: 'AAPL' }],
-      ['Price targets', 'price-target-consensus', { symbol: 'AAPL' }],
-      ['Analyst grades', 'grades', { symbol: 'AAPL', limit: 3 }],
-      ['Short quote', 'quote-short', { symbol: 'AAPL' }],
-      ['Aftermarket trade', 'aftermarket-trade', { symbol: 'AAPL' }],
-      ['Aftermarket quote', 'aftermarket-quote', { symbol: 'AAPL' }],
-      ['Price change', 'stock-price-change', { symbol: 'AAPL' }],
-      ['Sector performance', 'sector-performance-snapshot', { date: lastWeekday(), exchange: 'NASDAQ' }],
-      ['Biggest gainers', 'biggest-gainers', {}],
-      ['Stock screener', 'company-screener', { marketCapMoreThan: 10000000000, limit: 3 }],
-      ['Senate disclosures', 'senate-latest', { page: 0, limit: 3 }],
-      ['House disclosures', 'house-latest', { page: 0, limit: 3 }],
-      ['Senate trades by symbol', 'senate-trades', { symbol: 'AAPL' }],
-      ['Ratings snapshot', 'ratings-snapshot', { symbol: 'AAPL' }],
-      ['Price target summary', 'price-target-summary', { symbol: 'AAPL' }],
-      ['Ratings history', 'ratings-historical', { symbol: 'AAPL', limit: 3 }],
-      ['Analyst estimates', 'analyst-estimates', { symbol: 'AAPL', period: 'annual', page: 0, limit: 5 }],
-      ['Ratios (TTM)', 'ratios-ttm', { symbol: 'AAPL' }],
-      ['Key metrics (TTM)', 'key-metrics-ttm', { symbol: 'AAPL' }],
-      ['Income statement', 'income-statement', { symbol: 'AAPL', period: 'annual', limit: 2 }],
-      ['Balance sheet', 'balance-sheet-statement', { symbol: 'AAPL', period: 'annual', limit: 2 }],
-      ['Cash flow', 'cash-flow-statement', { symbol: 'AAPL', period: 'annual', limit: 2 }]
+    const probes: [string, string, Record<string, string | number>, CapId][] = [
+      ['Quote', 'quote', { symbol: 'AAPL' }, 'quotes'],
+      ['Index quote', 'quote', { symbol: '^GSPC' }, 'indices'],
+      ['Daily history', 'historical-price-eod/full', { symbol: 'AAPL', from, to }, 'daily'],
+      ['1-minute bars', 'historical-chart/1min', { symbol: 'AAPL', from, to }, 'bars1min'],
+      ['5-minute bars', 'historical-chart/5min', { symbol: 'AAPL', from, to }, 'bars5min'],
+      ['15-minute bars', 'historical-chart/15min', { symbol: 'AAPL', from, to }, 'bars15min'],
+      ['30-minute bars', 'historical-chart/30min', { symbol: 'AAPL', from, to }, 'bars30min'],
+      ['1-hour bars', 'historical-chart/1hour', { symbol: 'AAPL', from, to }, 'bars1hour'],
+      ['4-hour bars', 'historical-chart/4hour', { symbol: 'AAPL', from, to }, 'bars4hour'],
+      ['Symbol search', 'search-symbol', { query: 'AAPL', limit: 3 }, 'search'],
+      ['Stock news', 'news/stock', { symbols: 'AAPL', limit: 3 }, 'news'],
+      ['General market news', 'news/general-latest', { limit: 3 }, 'marketNews'],
+      ['Company profile', 'profile', { symbol: 'AAPL' }, 'profile'],
+      ['Analyst consensus', 'grades-consensus', { symbol: 'AAPL' }, 'analyst'],
+      ['Price targets', 'price-target-consensus', { symbol: 'AAPL' }, 'analyst'],
+      ['Analyst grades', 'grades', { symbol: 'AAPL', limit: 3 }, 'analyst'],
+      ['Short quote', 'quote-short', { symbol: 'AAPL' }, 'quotes'],
+      ['Aftermarket trade', 'aftermarket-trade', { symbol: 'AAPL' }, 'aftermarket'],
+      ['Aftermarket quote', 'aftermarket-quote', { symbol: 'AAPL' }, 'aftermarket'],
+      ['Price change', 'stock-price-change', { symbol: 'AAPL' }, 'quotes'],
+      ['Sector performance', 'sector-performance-snapshot', { date: lastWeekday(), exchange: 'NASDAQ' }, 'sectors'],
+      ['Biggest gainers', 'biggest-gainers', {}, 'movers'],
+      ['Stock screener', 'company-screener', { marketCapMoreThan: 10000000000, limit: 3 }, 'screener'],
+      ['Senate disclosures', 'senate-latest', { page: 0, limit: 3 }, 'congress'],
+      ['House disclosures', 'house-latest', { page: 0, limit: 3 }, 'congress'],
+      ['Senate trades by symbol', 'senate-trades', { symbol: 'AAPL' }, 'congress'],
+      ['Ratings snapshot', 'ratings-snapshot', { symbol: 'AAPL' }, 'analyst'],
+      ['Price target summary', 'price-target-summary', { symbol: 'AAPL' }, 'analyst'],
+      ['Ratings history', 'ratings-historical', { symbol: 'AAPL', limit: 3 }, 'analyst'],
+      ['Analyst estimates', 'analyst-estimates', { symbol: 'AAPL', period: 'annual', page: 0, limit: 5 }, 'estimates'],
+      ['Ratios (TTM)', 'ratios-ttm', { symbol: 'AAPL' }, 'fundamentals'],
+      ['Key metrics (TTM)', 'key-metrics-ttm', { symbol: 'AAPL' }, 'fundamentals'],
+      ['Income statement', 'income-statement', { symbol: 'AAPL', period: 'annual', limit: 2 }, 'fundamentals'],
+      ['Balance sheet', 'balance-sheet-statement', { symbol: 'AAPL', period: 'annual', limit: 2 }, 'fundamentals'],
+      ['Cash flow', 'cash-flow-statement', { symbol: 'AAPL', period: 'annual', limit: 2 }, 'fundamentals']
     ]
     const out: FmpTestRow[] = []
-    for (const [name, path, params] of probes) {
+    let aborted = false
+    for (const [name, path, params, cap] of probes) {
       try {
         const v = await request(path, params, { ctx: newCtx(true) })
         const list = Array.isArray(v) ? (v as Rec[]) : []
-        out.push({ name, path, ok: list.length > 0, detail: list.length ? `${list.length} record${list.length === 1 ? '' : 's'}` : 'Empty response', fields: list[0] ? Object.keys(list[0]) : undefined })
+        out.push({ name, path, cap, ok: list.length > 0, status: list.length ? 'ok' : 'empty', detail: list.length ? `${list.length} record${list.length === 1 ? '' : 's'}` : 'Empty response', fields: list[0] ? Object.keys(list[0]) : undefined })
       } catch (e) {
-        out.push({ name, path, ok: false, detail: (e as Error).message })
-        if (e instanceof FmpError && (e.kind === 'auth' || e.kind === 'nokey' || e.kind === 'network')) break
+        out.push({ name, path, cap, ok: false, status: e instanceof FmpError && e.kind === 'plan' ? 'plan' : 'error', detail: (e as Error).message })
+        if (e instanceof FmpError && (e.kind === 'auth' || e.kind === 'nokey' || e.kind === 'network')) { aborted = true; break }
       }
     }
-    return out
+    return { rows: out, aborted }
+  }
+
+  // The result of the last check, kept so screens and tools can leave out what the plan does not include.
+  const readCaps = (): FmpCaps | null => loadCaps(db)
+  const writeCaps = (caps: FmpCaps | null) => {
+    saveCaps(db, caps)
+    for (const w of BrowserWindow.getAllWindows()) w.webContents.send('fmp:caps:changed', caps)
+  }
+  /** A capability is missing only when every probe for it was refused by the plan; an empty answer still counts as available. */
+  const capsFromRows = (rows: FmpTestRow[]): FmpCaps => {
+    const byCap = new Map<string, FmpTestRow[]>()
+    for (const r of rows) if (r.cap) byCap.set(r.cap, [...(byCap.get(r.cap) ?? []), r])
+    const unavailable = [...byCap].filter(([, rs]) => rs.every((r) => r.status === 'plan')).map(([c]) => c as CapId)
+    return { checkedAt: Math.floor(Date.now() / 1000), unavailable }
+  }
+  let probing: Promise<FmpTestRow[] | null> | null = null
+  /** Runs the plan check and stores the outcome. Joins a check already in progress instead of starting a second. */
+  const checkPlan = (): Promise<FmpTestRow[] | null> => {
+    if (!key()) return Promise.resolve(null)
+    probing ??= runProbes().then(({ rows, aborted }) => { if (!aborted) writeCaps(capsFromRows(rows)); return rows }).catch(() => null).finally(() => { probing = null })
+    return probing
+  }
+  let lastCheckStart = 0
+  const checkSoon = (ms: number) => setTimeout(() => { lastCheckStart = Date.now(); void checkPlan() }, ms)
+  // An endpoint refused for plan reasons usually means the plan changed (or was never checked). Re-check, but not more than every 10 minutes:
+  // one refused request can also be about a single symbol, so a lone error never switches a feature off by itself.
+  noteRefusal = () => { if (!probing && Date.now() - lastCheckStart > 10 * 60_000) checkSoon(1_500) }
+  if (key() && !readCaps()) checkSoon(6_000)
+
+  ipcMain.handle('fmp:caps:get', () => readCaps())
+  wrap('fmp:test', async (): Promise<FmpTestRow[]> => {
+    lastCheckStart = Date.now()
+    const rows = await checkPlan()
+    if (!rows) throw new FmpError('No FMP API key. Add one in File → Settings.', 'nokey')
+    return rows
   })
 
   // used by the paper-trading engine
@@ -290,12 +331,18 @@ export function registerFmp(secrets: Secrets, db: DatabaseSync | null = null) {
       const v = Number(q?.['price'])
       return Number.isFinite(v) && v > 0 ? v : null
     },
-    /** 1-minute bars from `fromEpoch` (UTC seconds) until now, ascending. Looks back at most 10 days. */
-    async bars1m(symbol: string, fromEpoch: number): Promise<Bar[]> {
+    /** What the plan allows for filling working orders: 1-minute bars if included, otherwise the finest it has. */
+    grain: (): FillGrain | null => fillGrain(readCaps()?.unavailable ?? []),
+    /** Bars of the current grain from `fromEpoch` (UTC seconds) until now, ascending. Looks back at most 10 days. */
+    async barsFine(symbol: string, fromEpoch: number): Promise<Bar[]> {
+      const g = fillGrain(readCaps()?.unavailable ?? [])
+      if (!g) return []
       const floor = Date.now() / 1000 - 10 * 86400
       const start = Math.max(fromEpoch, floor)
-      const all = await bars(symbol, '1min', nyDate(start), day(new Date()), 15_000)
-      return all.filter((b) => b.time >= Math.floor(start / 60) * 60)
-    }
+      const boundary = Math.floor((start - g.offset) / g.seconds) * g.seconds + g.offset
+      const all = await bars(symbol, g.interval, nyDate(start), day(new Date()), 15_000)
+      return all.filter((b) => b.time >= boundary)
+    },
+    caps: readCaps
   }
 }

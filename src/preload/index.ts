@@ -4,9 +4,12 @@ import type { JournalEditable, JournalFilter, JournalItem } from '../shared/jour
 import type { CustomDocInput, Progress, StrategyDoc, StrategyProgress } from '../shared/strategies'
 import type { OptionsChain } from '../shared/options'
 import type { OrderSpec, TradeResult, TradeSnapshot } from '../shared/trade'
+import type { FmpCaps } from '../shared/fmpCaps'
+import type { AccountInfo, AccountInput, Transfer } from '../shared/accounts'
 import type { FmpScreener, FmpScreenerOptions, ScreenerQuery, FmpCongress, FmpMarket, NewsArticle, Bar, FmpAnalyst, FmpFundamentals, FmpInterval, FmpOverview, FmpResult, FmpSearchHit, FmpTestRow, Rec } from '../shared/fmp'
 import type { ChatEvent, ChatSummary, KeyStatus, SendRequest, StoredMessage } from '../shared/chat'
 
+type AcctResult<T> = { ok: true; data: T } | { ok: false; error: string }
 const call = <T>(channel: string, ...args: unknown[]) => ipcRenderer.invoke(channel, ...args) as Promise<FmpResult<T>>
 
 const api = {
@@ -66,6 +69,15 @@ const api = {
       return () => { ipcRenderer.removeListener('trade:update', h) }
     }
   },
+  accounts: {
+    list: (withEquity = false) => ipcRenderer.invoke('acct:list', withEquity) as Promise<{ list: AccountInfo[]; activeId: number }>,
+    transfers: (id: number) => ipcRenderer.invoke('acct:transfers', id) as Promise<Transfer[]>,
+    create: (input: AccountInput, balance: number) => ipcRenderer.invoke('acct:create', input, balance) as Promise<AcctResult<AccountInfo>>,
+    update: (id: number, patch: Partial<AccountInput>) => ipcRenderer.invoke('acct:update', id, patch) as Promise<AcctResult<AccountInfo>>,
+    setBalance: (id: number, cash: number, note?: string) => ipcRenderer.invoke('acct:setBalance', id, cash, note) as Promise<AcctResult<AccountInfo>>,
+    setActive: (id: number) => ipcRenderer.invoke('acct:setActive', id) as Promise<AcctResult<void>>,
+    remove: (id: number) => ipcRenderer.invoke('acct:remove', id) as Promise<AcctResult<void>>
+  },
   tools: {
     onCall: (cb: (c: { callId: string; name: string; input: unknown }) => void) => {
       const h = (_: unknown, c: { callId: string; name: string; input: unknown }) => cb(c)
@@ -92,6 +104,12 @@ const api = {
     fundamentals: (symbol: string) => call<FmpFundamentals>('fmp:fundamentals', symbol),
     news: (p: { symbol?: string; symbols?: string[]; general?: boolean; limit?: number; page?: number }) => call<NewsArticle[]>('fmp:news', p),
     test: () => call<FmpTestRow[]>('fmp:test'),
+    caps: () => ipcRenderer.invoke('fmp:caps:get') as Promise<FmpCaps | null>,
+    onCapsChanged: (cb: (c: FmpCaps | null) => void) => {
+      const h = (_: unknown, c: FmpCaps | null) => cb(c)
+      ipcRenderer.on('fmp:caps:changed', h)
+      return () => { ipcRenderer.removeListener('fmp:caps:changed', h) }
+    },
     mcpStatus: () => ipcRenderer.invoke('fmp:mcp:status') as Promise<{ ok: boolean; count?: number; transport?: string; sample?: string[]; error?: string }>
   },
   chat: {
@@ -124,9 +142,7 @@ const api = {
       ipcRenderer.on('win:maximized', h)
       return () => { ipcRenderer.removeListener('win:maximized', h) }
     }
-  },
-  getAccount: () => ipcRenderer.invoke('account:get') as Promise<{ cash: number; starting_cash: number }>,
-  getOpenTrades: () => ipcRenderer.invoke('trades:open') as Promise<any[]>
+  }
 }
 
 contextBridge.exposeInMainWorld('api', api)

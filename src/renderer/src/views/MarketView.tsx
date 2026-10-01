@@ -4,7 +4,7 @@ import { unwrap, useAsync } from '../data/fmp'
 import { buildMarket, DEFAULT_MOVER_FILTER, filterMovers, type MarketModel, type Mover, type MoverFilter, type Sector } from '../data/market'
 import { formatClock, resolveTz, tzAbbr } from '../display'
 import { ago } from '../components/NewsList'
-import { money } from '../data/sample'
+import { money } from '../format'
 
 const pct = (n: number | null, d = 2) => (n == null ? '—' : `${n >= 0 ? '+' : ''}${n.toFixed(d)}%`)
 const cls = (n: number | null) => (n == null ? '' : n >= 0 ? 'up' : 'down')

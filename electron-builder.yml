@@ -8,6 +8,7 @@ directories:
 # the renderer is bundled by Vite into out/; only the two main-process SDKs ship as node_modules
 files:
   - out/**/*
+  - build/icon.png
   - package.json
 asar: true
 npmRebuild: false
