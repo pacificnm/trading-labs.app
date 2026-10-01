@@ -82,7 +82,8 @@ Find the symptom, then try the fixes in order. Most problems come down to a miss
 |---|---|
 | **Settings says the keys are stored unencrypted** | Start your system keyring (such as GNOME Keyring or KWallet) and save the keys again. The app asks for the system keyring explicitly, because some desktops are not detected |
 | **I lost my keys after copying my data to another computer** | Keys are encrypted for the computer they were saved on. Enter them again in Settings |
-| **The app will not start after a restore** | Copy the **whole** data folder, including the `-wal` and `-shm` files, with the app closed. See *Data, cache and backups* |
+| **I restored a backup and want my old data back** | **File → Restore From Backup…** and choose the `before-restore-…` file in the `backups` folder inside your data folder. See *Data, cache and backups* |
+| **The app will not start after copying the folder by hand** | Copy the **whole** data folder, including the `-wal` and `-shm` files, with the app closed. Or use **File → Back Up Data…** and **Restore From Backup…** instead |
 | **I deleted my data folder** | It cannot be recovered without a backup |
 
 ## Screens and lists
@@ -102,7 +103,8 @@ Find the symptom, then try the fixes in order. Most problems come down to a miss
 If you still cannot solve it:
 
 - **Ask Claude.** Describe what you see. It can read your screen's state and help you work out what is wrong. Remember that it cannot see your computer outside the app.
-- **Copy your version information.** **About → About Trading Lab…** has a **Copy version info** button. It lists the version, the build type and the system.
+- **Check you have the latest version.** **About → About Trading Lab…** has **Check for updates**. The problem may already be fixed. See *Updates and versions*.
+- **Copy your version information.** The same dialog has a **Copy version info** button. It lists the version, the build type and the system.
 - **Run the self-test.** `trading-lab --self-test` gives a short report on the install.
 - **Note exactly what you did.** The steps, what you expected, and what happened.
 

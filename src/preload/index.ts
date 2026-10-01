@@ -130,6 +130,16 @@ const api = {
   getSetting: (key: string) => ipcRenderer.invoke('settings:get', key) as Promise<any>,
   setSetting: (key: string, value: unknown) => ipcRenderer.invoke('settings:set', key, value) as Promise<void>,
   openExternal: (url: string) => ipcRenderer.invoke('app:openExternal', url) as Promise<void>,
+  backup: {
+    create: () => ipcRenderer.invoke('backup:create') as Promise<{ ok: true; path: string; size: number; contents: string } | { ok: false; canceled?: boolean; error?: string }>,
+    restore: () => ipcRenderer.invoke('backup:restore') as Promise<{ ok: true } | { ok: false; canceled?: boolean; error?: string }>
+  },
+  checkUpdates: () => ipcRenderer.invoke('update:check') as Promise<{ ok: true; current: string; latest: string; available: boolean; url: string; downloadUrl?: string; notes: string; published: string } | { ok: false; error: string }>,
+  onUpdateAvailable: (cb: (u: { latest: string; url: string; downloadUrl?: string }) => void) => {
+    const h = (_e: unknown, u: { latest: string; url: string; downloadUrl?: string }) => cb(u)
+    ipcRenderer.on('update:available', h)
+    return () => { ipcRenderer.removeListener('update:available', h) }
+  },
   about: () => ipcRenderer.invoke('app:about') as Promise<{ name: string; description: string; version: string; packaged: boolean; license: string; electron: string; chromium: string; node: string; platform: string; arch: string; dataFolder: string; repository: string }>,
   quit: () => ipcRenderer.invoke('app:quit'),
   win: {

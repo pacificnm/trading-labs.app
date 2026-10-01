@@ -33,11 +33,11 @@ A desktop app for **learning to trade with paper money**. It combines live-data 
 
 ## Help
 
-A full **Help library** is built in: 41 pages with screenshots and step-by-step instructions for every screen and feature, from first-time setup to reference material. Open it from **About → Help Contents** or press **F1**. The pages are Markdown files in `src/renderer/src/help/pages/`.
+A full **Help library** is built in: 42 pages with screenshots and step-by-step instructions for every screen and feature, from first-time setup to reference material. Open it from **About → Help Contents** or press **F1**. The pages are Markdown files in `src/renderer/src/help/pages/`.
 
 ## Requirements
 
-- **Linux.** Developed on Raspberry Pi OS (arm64) and also built and run on x86-64 (Debian 13): the unpacked build and the AppImage pass `--self-test` there. The x86-64 `.deb` builds with the right metadata but has not been installed.
+- **Linux, Windows or macOS.** Releases ship installers for all three (Linux: AppImage and `.deb`; Windows: x64 installer; macOS: `.dmg` for Apple Silicon and Intel). The Windows and macOS builds come from CI and have **not been run by the author yet**, and they are unsigned (see Releases below). On Linux: Developed on Raspberry Pi OS (arm64) and also built and run on x86-64 (Debian 13): the unpacked build and the AppImage pass `--self-test` there. The x86-64 `.deb` builds with the right metadata but has not been installed.
 - **Node.js 22 or newer** and npm (to run from source). Electron 44 bundles its own Node 24, so end users of the packaged app need neither.
 - A **[Financial Modeling Prep](https://site.financialmodelingprep.com/) API key.** Without one the app runs on sample data, and trading is disabled because simulated fills need real prices. Intraday history and some endpoints need a paid plan. Options data does not use FMP.
 - An **[Anthropic API key](https://console.anthropic.com/)** for the Claude panel (optional; everything else works without it).
@@ -57,12 +57,24 @@ Then open **File → Settings** and paste your FMP and Anthropic keys.
 ### Build an installable app
 
 ```bash
-npm run dist         # AppImage and .deb in ./release (about 90 seconds)
+npm run dist         # packages for the OS you run it on, in ./release (Linux: AppImage and .deb, about 90 seconds)
 npm run dist:dir     # just the unpacked folder: release/linux-unpacked/trading-lab (linux-arm64-unpacked on arm64)
 ```
 
 - AppImage: `chmod +x release/Trading-Lab-*.AppImage && ./release/Trading-Lab-*.AppImage`
 - Debian: `sudo apt install ./release/trading-lab_*.deb` (adds a menu entry and a `trading-lab` command)
+
+### Releases and updates
+
+Releases are published on GitHub and carry the Linux AppImage and `.deb` (x86-64, arm64), a Windows x64 installer and macOS `.dmg` files (arm64, x64). None is code-signed: Windows SmartScreen warns (More info, Run anyway), and on macOS use right-click, Open the first time. **About → Check for updates** compares your version with the newest release and links to the download (the installed app also checks once a day, and does not install anything by itself).
+
+To publish a release, from a clean `main`:
+
+```bash
+npm run release -- patch     # or minor / major
+```
+
+That bumps `package.json`, commits, tags `vX.Y.Z` and pushes; the **Release** workflow (`.github/workflows/release.yml`) builds every platform and creates the GitHub release with generated notes. The tag must match the version in `package.json`.
 
 ### Check an install
 
@@ -73,10 +85,11 @@ npm run dist:dir     # just the unpacked folder: release/linux-unpacked/trading-
 
 ## Your data and privacy
 
-- Everything lives in **`~/.config/trading-lab`**: a SQLite database (`trading.db`) with the paper accounts, orders, journal, watchlists, strategy progress, settings, and a cache of market data. The dev build, the AppImage and the `.deb` all share this folder.
+- **File → Back Up Data…** saves your accounts, orders, journal, watchlists and settings to a single file (no API keys, no market cache), and **File → Restore From Backup…** puts one back after saving a safety copy of what you had. See the Help page *Data, cache and backups*.
+- Everything lives in one data folder (**`~/.config/trading-lab`** on Linux, `%APPDATA%\trading-lab` on Windows, `~/Library/Application Support/trading-lab` on macOS): a SQLite database (`trading.db`) with the paper accounts, orders, journal, watchlists, strategy progress, settings, and a cache of market data. The dev build, the AppImage and the `.deb` all share this folder.
 - API keys are stored encrypted through the system keyring when it is available.
 - Set `TRADING_DATA_DIR` to use a different folder (handy for testing).
-- Network use: `financialmodelingprep.com` (market data and its MCP server), `cdn.cboe.com` (delayed options), `api.anthropic.com` (the assistant), and publishers' image servers for news thumbnails. Your FMP key is only ever sent to FMP; Claude's tool calls run inside the app.
+- Network use: `financialmodelingprep.com` (market data and its MCP server), `cdn.cboe.com` (delayed options), `api.anthropic.com` (the assistant), `api.github.com` (checking for a newer release; switch it off in About), and publishers' image servers for news thumbnails. Your FMP key is only ever sent to FMP; Claude's tool calls run inside the app.
 - When you chat, the message, the app context (symbol, chart settings, account summary) and any tool results Claude requests are sent to Anthropic.
 
 ## Troubleshooting

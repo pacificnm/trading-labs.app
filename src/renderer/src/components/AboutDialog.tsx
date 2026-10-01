@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Copy, ExternalLink, X } from 'lucide-react'
+import { Copy, Download, ExternalLink, RefreshCw, X } from 'lucide-react'
 import { toast } from '../toast'
 import Logo from './Logo'
 
@@ -9,6 +9,10 @@ const platformName = (p: string) => ({ linux: 'Linux', darwin: 'macOS', win32: '
 
 export default function AboutDialog({ onClose }: { onClose: () => void }) {
   const [a, setA] = useState<About | null>(null)
+  const [upd, setUpd] = useState<Awaited<ReturnType<typeof window.api.checkUpdates>> | 'busy' | null>(null)
+  const [auto, setAuto] = useState(true)
+  useEffect(() => { window.api.getSetting('autoUpdateCheck').then((v) => setAuto(v !== false)) }, [])
+  const check = async () => { setUpd('busy'); setUpd(await window.api.checkUpdates()) }
   useEffect(() => { window.api.about().then(setA) }, [])
   useEffect(() => { const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose(); window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k) }, [onClose])
 
@@ -36,6 +40,17 @@ export default function AboutDialog({ onClose }: { onClose: () => void }) {
                 ? <button className="btn primary" onClick={() => window.api.openExternal(a.repository)}><ExternalLink size={13} /> GitHub repository</button>
                 : <span className="muted" title="Set the repository field in package.json">GitHub repository: not configured yet</span>}
               <button className="btn" onClick={() => { navigator.clipboard.writeText(details); toast.success('Version details copied') }}><Copy size={13} /> Copy version info</button>
+            </div>
+            <div className="about-update">
+              <div className="about-links">
+                <button className="btn" disabled={upd === 'busy'} onClick={check}><RefreshCw size={13} /> {upd === 'busy' ? 'Checking…' : 'Check for updates'}</button>
+                {upd && upd !== 'busy' && upd.ok && upd.available && <button className="btn primary" onClick={() => window.api.openExternal(upd.downloadUrl ?? upd.url)}><Download size={13} /> Download {upd.latest}</button>}
+                {upd && upd !== 'busy' && upd.ok && upd.available && <button className="btn" onClick={() => window.api.openExternal(upd.url)}>Release notes</button>}
+              </div>
+              {upd && upd !== 'busy' && (upd.ok
+                ? <div className={upd.available ? 'up' : 'muted'}>{upd.available ? `Version ${upd.latest} is available (you have ${upd.current}).` : `You are up to date (${upd.current}).`}</div>
+                : <div className="down">{upd.error}</div>)}
+              <label className="plan-toggle"><input type="checkbox" checked={auto} onChange={(e) => { setAuto(e.target.checked); window.api.setSetting('autoUpdateCheck', e.target.checked) }} /> Check for updates automatically (GitHub, once a day)</label>
             </div>
             <div className="about-credits muted">
               <div><b>Built with</b> Electron, React, and TradingView Lightweight Charts™ (<a className="link" onClick={() => window.api.openExternal('https://www.tradingview.com/')}>tradingview.com</a>).</div>

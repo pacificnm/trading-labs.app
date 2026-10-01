@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, safeStorage, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, safeStorage, shell } from 'electron'
 import { dirname, join } from 'path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { getDb } from './db'
@@ -13,6 +13,8 @@ import { createOptionsClient } from './options'
 import { isMarketOpen } from '../shared/nytime'
 import { createWatchlists } from './watchlists'
 import { createAccounts } from './accounts'
+import { createUpdates, githubSlug } from './updates'
+import { createBackup, fileSize, inspectBackup, restoreBackup } from './backup'
 
 // One data folder whatever this build is called (dev run, unpacked folder, AppImage or .deb), so the
 // database and saved keys are shared between them.
@@ -125,7 +127,8 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
-  Menu.setApplicationMenu(null)
+  // our own title bar replaces the menu everywhere except macOS, where the menu bar is also what carries Cmd+C/V/Q
+  Menu.setApplicationMenu(process.platform === 'darwin' ? Menu.buildFromTemplate([{ role: 'appMenu' }, { role: 'editMenu' }, { role: 'windowMenu' }]) : null)
   const db = getDb()
 
   // `trading-lab --self-test` checks the install without opening a window (used to verify packaged builds)
@@ -233,6 +236,55 @@ app.whenReady().then(() => {
       dataFolder: app.getPath('userData'), repository: /^https?:\/\//.test(repo) ? repo : ''
     }
   })
+  // File > Back up / Restore. Dialogs live here so the renderer never handles file paths or the database file.
+  const dbFile = join(app.getPath('userData'), 'trading.db')
+  const describe = (b: { accounts: number; orders: number; journal: number; watchlists: number }) => `${b.accounts} account(s), ${b.orders} order(s), ${b.journal} journal entr${b.journal === 1 ? 'y' : 'ies'}, ${b.watchlists} watchlist(s)`
+  ipcMain.handle('backup:create', async (e) => {
+    const parent = win(e)
+    const r = await dialog.showSaveDialog(parent, { title: 'Back up Trading Lab data', defaultPath: join(app.getPath('documents'), `trading-lab-backup-${new Date().toISOString().slice(0, 10)}.db`), filters: [{ name: 'Trading Lab backup', extensions: ['db'] }] })
+    if (r.canceled || !r.filePath) return { ok: false, canceled: true }
+    try {
+      const sum = createBackup(db, r.filePath, app.getVersion())
+      return { ok: true, path: r.filePath, size: fileSize(r.filePath), contents: describe(sum) }
+    } catch (err) { return { ok: false, error: err instanceof Error ? err.message : String(err) } }
+  })
+  ipcMain.handle('backup:restore', async (e) => {
+    const parent = win(e)
+    const pick = await dialog.showOpenDialog(parent, { title: 'Restore Trading Lab data from a backup', properties: ['openFile'], filters: [{ name: 'Trading Lab backup', extensions: ['db'] }, { name: 'All files', extensions: ['*'] }] })
+    if (pick.canceled || !pick.filePaths[0]) return { ok: false, canceled: true }
+    const file = pick.filePaths[0]
+    if (file === dbFile) return { ok: false, error: 'That is the live database. Choose a backup file.' }
+    const info = inspectBackup(file, app.getVersion())
+    if (!info.ok) return { ok: false, error: info.error }
+    const made = info.summary.createdAt ? ` made ${new Date(info.summary.createdAt).toLocaleString()}` : ''
+    const sure = await dialog.showMessageBox(parent, {
+      type: 'warning', title: 'Restore backup', buttons: ['Restore and restart', 'Cancel'], defaultId: 1, cancelId: 1,
+      message: 'Replace all current data with this backup?',
+      detail: `Backup${made}:\n${describe(info.summary)}.\n\nEverything now in Trading Lab (accounts, orders, journal, watchlists, settings, chats) is replaced. A safety copy of the current data is saved first, and your API keys on this computer are kept. The app restarts when it is done.`
+    })
+    if (sure.response !== 0) return { ok: false, canceled: true }
+    try {
+      const { safetyCopy } = restoreBackup({ live: db, livePath: dbFile, backupPath: file, safetyDir: join(app.getPath('userData'), 'backups'), appVersion: app.getVersion() })
+      console.log('restored backup; safety copy at', safetyCopy)
+      app.relaunch()
+      app.exit(0)
+      return { ok: true }
+    } catch (err) { return { ok: false, error: err instanceof Error ? err.message : String(err) } }
+  })
+  // update check against GitHub Releases: on a timer when the setting allows, and on demand from the About dialog
+  const updateRepo = (() => {
+    try { const p = JSON.parse(readFileSync(join(app.getAppPath(), 'package.json'), 'utf8')); return githubSlug(typeof p.repository === 'string' ? p.repository : p.repository?.url ?? '') } catch { return null }
+  })()
+  const checkUpdates = createUpdates({ fetch, current: app.getVersion(), slug: updateRepo, platform: process.platform, arch: process.arch, appImage: !!process.env['APPIMAGE'] })
+  const autoUpdates = () => { try { const r = db.prepare('SELECT value FROM settings WHERE key = ?').get('autoUpdateCheck') as { value: string } | undefined; return r ? JSON.parse(r.value) !== false : true } catch { return true } }
+  ipcMain.handle('update:check', () => checkUpdates())
+  const autoCheck = async () => {
+    if (!autoUpdates()) return
+    const r = await checkUpdates()
+    if (r.ok && r.available) BrowserWindow.getAllWindows().forEach((w) => w.webContents.send('update:available', r))
+  }
+  // packaged builds only: a dev checkout is always "behind" its own tags. TRADING_UPDATE_CHECK=1 forces it for testing
+  if (app.isPackaged || process.env['TRADING_UPDATE_CHECK']) { setTimeout(autoCheck, 20_000); setInterval(autoCheck, 24 * 3600 * 1000) }
   ipcMain.handle('app:quit', () => app.quit())
   ipcMain.handle('win:close', (e) => win(e).close())
   ipcMain.handle('win:isMaximized', (e) => win(e).isMaximized())

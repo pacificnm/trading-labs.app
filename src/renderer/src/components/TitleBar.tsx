@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Minus, Square, Copy, X } from 'lucide-react'
+import { toast } from '../toast'
 import Logo from './Logo'
 
 // Frameless window: the bar is a drag region, interactive parts opt out via CSS.
@@ -27,6 +28,15 @@ export default function TitleBar({ title, onOpenSettings, onOpenChartSettings, o
     }
   }, [open])
 
+  const backUp = async () => {
+    const r = await window.api.backup.create()
+    if (r.ok) toast.success(`${r.contents}. Saved to ${r.path} (${(r.size / 1024 / 1024).toFixed(1)} MB). API keys are not included.`, { title: 'Backup saved', duration: 12000 })
+    else if (!r.canceled) toast.error(r.error ?? 'The backup could not be written.', { title: 'Backup failed' })
+  }
+  const restore = async () => {
+    const r = await window.api.backup.restore()
+    if (!r.ok && !r.canceled) toast.error(r.error ?? 'The backup could not be restored.', { title: 'Restore failed' })
+  }
   const pick = (fn: () => void) => () => { setOpen(null); fn() }
 
   return (
@@ -38,6 +48,9 @@ export default function TitleBar({ title, onOpenSettings, onOpenChartSettings, o
           {open === 'file' && (
             <div className="dropdown">
               <button onClick={pick(onOpenSettings)}>Settings</button>
+              <hr />
+              <button onClick={pick(backUp)}>Back Up Data…</button>
+              <button onClick={pick(restore)}>Restore From Backup…</button>
               <hr />
               <button onClick={pick(() => window.api.quit())}>Exit<span className="hint">Alt+F4</span></button>
             </div>

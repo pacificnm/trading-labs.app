@@ -10,9 +10,9 @@ On the left are three menus:
 
 | Menu | Items |
 |---|---|
-| **File** | **Settings** (API keys, time zone), **Exit** |
+| **File** | **Settings** (API keys, time zone), **Back Up Data…** and **Restore From Backup…** (see *Data, cache and backups*), **Exit** |
 | **Chart** | **Chart Settings…** (chart type, studies and their colors) |
-| **About** | **Help Contents** (this library, also **F1**), **About Trading Lab…** (version and details) |
+| **About** | **Help Contents** (this library, also **F1**), **About Trading Lab…** (version, details and **Check for updates**; see *Updates and versions*) |
 
 Click a menu to open it, then slide across the bar to switch menus. **Esc** closes it.
 

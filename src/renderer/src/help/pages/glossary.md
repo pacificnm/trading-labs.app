@@ -20,6 +20,8 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 
 ## B
 
+**Backup** — A single file holding your accounts, orders, journal, watchlists and settings, made with **File → Back Up Data…**. It does not include API keys. See *Data, cache and backups*.
+
 **Bar** — One period of price on a chart: a candle with its open, high, low and close. Also the name of a chart type (OHLC bars).
 
 **Bear market, bearish** — A falling market, or an expectation that prices will fall.
@@ -198,6 +200,8 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 
 ## R
 
+**Restore** — Replacing your current data with a backup, using **File → Restore From Backup…**. A safety copy of the current data is saved first. See *Data, cache and backups*.
+
 **R (R multiple)** — A result measured in units of your planned risk. If you risked $100 and made $200, you made **+2R**. See *Trading journal*.
 
 **Rate of Change (ROC)** — A study showing the percent change in price over a set number of candles.
@@ -255,6 +259,10 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 **Trend** — The general direction of price. An uptrend has higher highs and higher lows.
 
 **TTM (Trailing twelve months)** — The most recent four quarters added together.
+
+## U
+
+**Update** — A newer release of Trading Lab on GitHub. **About → Check for updates** tells you if one exists and links to the download. See *Updates and versions*.
 
 ## V
 

@@ -30,6 +30,21 @@ linux:
       Keywords: trading;stocks;charts;learning;paper trading;
       StartupWMClass: trading-lab
       Categories: Office;Finance;
+mac:
+  category: public.app-category.finance
+  # no Apple Developer ID yet: ad-hoc signing keeps Apple Silicon builds launchable (first run: right-click, Open)
+  identity: '-'
+  target:
+    - dmg
+win:
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  artifactName: Trading-Lab-Setup-${version}-${arch}.exe
+dmg:
+  artifactName: Trading-Lab-${version}-${arch}.dmg
 appImage:
   artifactName: Trading-Lab-${version}-${arch}.AppImage
 deb:

@@ -75,4 +75,6 @@ Daily, weekly and monthly bars are dates, so they do not change with this settin
 
 More fixes are in *Troubleshooting* in the Reference section.
 
+> **Tip:** once you have set up your accounts and watchlists, make a first backup with **File → Back Up Data…**. Your API keys are not included in it. See *Data, cache and backups*.
+
 **Next:** *A tour of the window*.

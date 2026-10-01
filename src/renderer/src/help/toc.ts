@@ -72,7 +72,8 @@ export const HELP: HelpGroup[] = [
     id: 'settings', title: 'Settings', topics: [
       { id: 'settings-keys', title: 'API keys', summary: 'Storing keys, encryption, and the connection test.', view: 'settings' },
       { id: 'settings-display', title: 'Time zone and display', summary: 'Local vs market time, 12/24-hour clock.', view: 'settings' },
-      { id: 'settings-data', title: 'Data, cache and backups', summary: 'Where your data lives and how market data is cached.' }
+      { id: 'settings-data', title: 'Data, cache and backups', summary: 'Where your data lives, how market data is cached, and how to back up and restore.' },
+      { id: 'updates', title: 'Updates and versions', summary: 'See your version, check for a new release and download it.' }
     ]
   },
   {

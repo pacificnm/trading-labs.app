@@ -8,14 +8,21 @@ Guidance for working on **Trading Lab**: an Electron + React + TypeScript deskto
 npm run dev          # electron-vite dev (hot reload). Unsets ELECTRON_RUN_AS_NODE and passes --no-sandbox
 npm run typecheck    # tsc --noEmit  (run after every change; the build alone does not typecheck)
 npm run build        # electron-vite build -> out/
-npm run dist         # build + electron-builder: AppImage and .deb in release/ (~90 s, arm64 host)
+npm run dist         # build + electron-builder for the host OS into release/ (Linux: AppImage and .deb, ~90 s on arm64)
 npm run dist:dir     # unpacked folder only
 npm run selftest     # run the app headless-ish: prints versions, data dir, DB and key status, exits
 ```
 
 Always do `npx tsc --noEmit -p .` **and** `npx electron-vite build` before calling something done. There is no linter, no formatter config and **no test suite** (see Testing).
 
-The project is not a git repository yet. `out/`, `release/` and `node_modules/` are build output.
+`out/`, `release/` and `node_modules/` are build output and are git-ignored.
+
+## Releases and updates
+
+- Version lives only in `package.json`. `npm run release -- patch|minor|major` (`scripts/release.sh`) bumps it, commits, tags `vX.Y.Z` and pushes. The tag push triggers `.github/workflows/release.yml`, which builds on native runners (Linux x64 and arm64, Windows x64, macOS arm64 and x64; electron-builder cannot cross-build Electron apps reliably) and creates the GitHub release with an AppImage, `.deb`, NSIS `.exe` and `.dmg`; it fails if the tag and `package.json` disagree.
+- The app reads `releases/latest` from the GitHub API (`main/updates.ts`, pure and testable with an injected `fetch`; `shared/version.ts` compares versions). It never downloads or installs: the UI opens the release page or asset. Automatic checks run only in packaged builds (`TRADING_UPDATE_CHECK=1` forces them in dev), 20 s after start and then daily, gated by the `autoUpdateCheck` setting; the toast is shown once per version (`updateSeen`). The repo slug comes from `package.json`'s `repository`, so renaming the repo means editing it there.
+- Windows and macOS builds are CI-only and have never been run by us (the dev machine is Linux arm64). `identity: '-'` ad-hoc signs the mac app; Windows is unsigned. On macOS the application menu is set to roles (appMenu/editMenu/windowMenu) because without it Cmd+C/V/Q do nothing; other platforms use our own title bar and no menu. The Linux-only startup switches in `main/index.ts` are gated on `process.platform`.
+- Releases are public and unsigned; adding auto-install would need code signing and a feed format, which is deliberately not done.
 
 ## How it fits together
 
@@ -46,6 +53,7 @@ renderer (React)  --window.api (preload, contextIsolation)-->  main (Node/Electr
 - To test a restricted plan, run the fake feed with `FAKE_RESTRICT=historical-chart/1min,senate,company-screener node scripts/fake-fmp.mjs` (prefixes of FMP paths that answer 402).
 
 ### Data
+- **Backup/restore** (`main/backup.ts`, wired in `index.ts` as `backup:create` / `backup:restore`, File menu): `VACUUM INTO` a single file, API keys (`SECRET_KEYS`) and `fmp_cache` stripped, a `backup_meta` row records the app version (a backup from a newer version is refused). Restore validates first (integrity check, required tables), writes a safety copy to `userData/backups/` (5 kept), stages the backup next to the live file, re-inserts this machine's keys, closes the live handle, swaps the file and relaunches. All dialogs are in main. A new secret setting must be added to `SECRET_KEYS`; a new table needs nothing (the whole file is copied), but never put a secret in a table other than `settings`.
 - SQLite via the built-in **`node:sqlite`** (no native modules, nothing to rebuild). Database at `~/.config/trading-lab/trading.db` (override with `TRADING_DATA_DIR`). The userData path is pinned in `main/index.ts` so dev, AppImage and `.deb` share it.
 - Schema is `CREATE TABLE IF NOT EXISTS` in `db.ts` and `schema.ts`. There is no migration framework: adding a column to an existing table needs an explicit, idempotent `ALTER` (check with `PRAGMA table_info`).
 - Settings are a key/value table (`settings`); API keys go through `secrets.ts` (Electron `safeStorage`, libsecret backend forced on Linux).
@@ -113,7 +121,7 @@ Live-API checks spend the user's money and quota (Anthropic and FMP). Keep them 
 
 **New chart study.** Entry in `chart/studies.ts` (`compute` returns named `Output`s; declare `tones` for two-colour outputs); pure math in `chart/indicators.ts`. Colors, parameters, the settings UI and Claude's tools pick it up automatically.
 
-**Help page.** The Help library (About → Help Contents, F1) is `renderer/src/help/`: `toc.ts` lists groups and topics (with a `view` for the "Open this screen" button), a topic's page is the markdown file `pages/<topic id>.md`, and screenshots go in `img/` and are referenced by bare file name (`![alt](shot.png)`). A topic with no file shows a "being written" page. When you add or change a screen or feature, update its page. Take screenshots with `--screenshot` against a scratch `TRADING_DATA_DIR`, never with real keys or data on screen.
+**Help page.** (There is an `updates` page; keep it in step with the About dialog.) The Help library (About → Help Contents, F1) is `renderer/src/help/`: `toc.ts` lists groups and topics (with a `view` for the "Open this screen" button), a topic's page is the markdown file `pages/<topic id>.md`, and screenshots go in `img/` and are referenced by bare file name (`![alt](shot.png)`). A topic with no file shows a "being written" page. When you add or change a screen or feature, update its page. Take screenshots with `--screenshot` against a scratch `TRADING_DATA_DIR`, never with real keys or data on screen.
 
 **New strategy document.** Add to `renderer/src/data/strategies.ts`; its `chartSetup` must use real study ids and a range/interval pair that `isAllowed`. The disclaimer is appended automatically.
 

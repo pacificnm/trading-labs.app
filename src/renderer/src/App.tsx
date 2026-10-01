@@ -66,6 +66,14 @@ export default function App() {
   const [aboutOpen, setAboutOpen] = useState(false)
   const [helpTopic, setHelpTopic] = useState('welcome')
   const openHelp = (topic?: string) => { if (topic) setHelpTopic(topic); setView('help') }
+  // a newer GitHub release: say so once per version, then leave it to About
+  useEffect(() => window.api.onUpdateAvailable((u) => {
+    window.api.getSetting('updateSeen').then((seen) => {
+      if (seen === u.latest) return
+      window.api.setSetting('updateSeen', u.latest)
+      toast.info(`Version ${u.latest} is available.`, { title: 'Update', duration: 0, action: { label: 'Open download page', onClick: () => window.api.openExternal(u.url) } })
+    })
+  }), [])
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'F1') { e.preventDefault(); setView('help') } }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k) }, [])
   const [symbol, setSymbol] = useState('AAPL')
   const [lists, setLists] = useState<WatchList[]>([])

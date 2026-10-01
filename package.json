@@ -9,9 +9,10 @@
     "build": "electron-vite build",
     "start": "env -u ELECTRON_RUN_AS_NODE electron-vite preview -- --no-sandbox",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "dist": "electron-vite build && electron-builder --linux",
-    "dist:dir": "electron-vite build && electron-builder --linux --dir",
-    "selftest": "env -u ELECTRON_RUN_AS_NODE electron . --no-sandbox --self-test"
+    "dist": "electron-vite build && electron-builder",
+    "dist:dir": "electron-vite build && electron-builder --dir",
+    "selftest": "env -u ELECTRON_RUN_AS_NODE electron . --no-sandbox --self-test",
+    "release": "scripts/release.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",

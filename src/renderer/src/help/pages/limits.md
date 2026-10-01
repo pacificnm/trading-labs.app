@@ -75,8 +75,9 @@ If you later trade with real money:
 - Trading Lab is a **personal project** and is provided **as is**, with no warranty. See **About → About Trading Lab…** for the version and credits.
 - **Charts** are built with TradingView Lightweight Charts™.
 - **Market data and company information** come from Financial Modeling Prep, and **options data** from Cboe's delayed quotes. **Claude** is provided by Anthropic. These are separate companies, and their data and services are subject to their own terms.
-- **Platforms:** the app has been built and tested on Linux (arm64). Other systems are untested.
-- **Back up your data** if it matters to you. See *Data, cache and backups*.
+- **Platforms:** the app is developed and tested on Linux. Windows and macOS installers are built automatically for each release but have not been tested by the author, and they are not code-signed, so your system may warn you the first time.
+- **Back up your data** if it matters to you, with **File → Back Up Data…**. Backups do not include your API keys. See *Data, cache and backups*.
+- **Updates are not automatic installs.** The app tells you when a new version exists and links to it. See *Updates and versions*.
 
 ## In short
 

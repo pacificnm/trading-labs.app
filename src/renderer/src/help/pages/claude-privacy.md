@@ -87,7 +87,7 @@ Your **data key goes only to the data provider**, and Claude's tools run **insid
 - **Your chats** are stored in the app's local database, so history survives restarts.
 - **Your paper accounts (names, brokerages, links and balances), orders, journal, watchlists, strategy progress, drawings and settings** are in the same database.
 - **Your API keys** are stored there too, **encrypted** with your system keyring when one is available. **Settings** says whether they are encrypted. See *First-time setup*.
-- The data folder is shown in **About → About Trading Lab**, and is normally `~/.config/trading-lab`. It is not uploaded anywhere.
+- The data folder is shown in **About → About Trading Lab**, and is normally `~/.config/trading-lab` on Linux, `%APPDATA%\trading-lab` on Windows and `~/Library/Application Support/trading-lab` on macOS. It is not uploaded anywhere.
 
 ### Deleting your data
 

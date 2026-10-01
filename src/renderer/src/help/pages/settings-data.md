@@ -4,7 +4,7 @@ This page explains where Trading Lab keeps your information, how the **market da
 
 All your data is kept in **one folder**, in a single database file.
 
-- On Linux the folder is normally **`~/.config/trading-lab`** (the `.config` folder in your home folder).
+- On Linux the folder is normally **`~/.config/trading-lab`** (the `.config` folder in your home folder). On Windows it is **`%APPDATA%\trading-lab`**, and on macOS **`~/Library/Application Support/trading-lab`**. The backup commands below use the Linux path; copy the folder the same way on your system.
 - **About → About Trading Lab…** shows the exact path on the line labeled **Data folder**.
 - The development version, the AppImage and the installed `.deb` all use the **same folder**, so they share one set of data.
 
@@ -67,32 +67,47 @@ Clearing the cache is **always safe**. It never touches your account, journal or
 
 ## Backing up your data
 
-A backup protects you from a failed disk, a mistake, or a reset you regret. The simplest backup is a copy of the whole data folder.
+A backup protects you from a failed disk, a mistake, or a reset you regret. Trading Lab can make one for you.
 
-1. **Close Trading Lab** completely, so the database is not in use.
-2. **Copy the folder.** For example, in a terminal:
+![The File menu with Back Up Data and Restore From Backup](file-menu-backup.png)
 
-   ```bash
-   cp -r ~/.config/trading-lab ~/trading-lab-backup-2026-10-01
-   ```
+1. Open **File → Back Up Data…**.
+2. Choose where to save it. The suggested name is `trading-lab-backup-` and today's date, in your Documents folder.
+3. A message confirms what was saved: how many accounts, orders, journal entries and watchlists, and the size of the file.
 
-   Or use your file manager. Show hidden files if you cannot see `.config`. Copy the **whole folder**, including the `-wal` and `-shm` files.
-3. **Store the copy** somewhere safe, such as an external drive or another computer.
+The backup is **one file** and it is safe to make while the app is running. It holds your paper accounts, orders, fills, positions, journal, watchlists, strategy progress and notes, drawings, settings and Claude chats.
 
-Do this regularly, for example once a week, and always before a big change such as **Reset account** or **Delete account**.
+It does **not** contain your **API keys**, because those are secrets tied to this computer's keyring, and it leaves out the **market data cache**, which the app refills by itself. That makes the file small and safe to store in a cloud folder or send to yourself.
 
-> A copy made while the app is running may be incomplete. Close the app first.
+Make one regularly, for example weekly, and always before a big change such as **Reset account** or **Delete account**. Keep a copy on another disk or computer.
 
-### Restoring a backup
+## Restoring a backup
 
-1. **Close Trading Lab.**
-2. Move the current folder out of the way (for example rename it to `trading-lab-old`).
-3. Copy your backup into place as `~/.config/trading-lab`.
-4. Start the app.
+1. Open **File → Restore From Backup…**.
+2. Choose the backup file.
+3. The app checks it first. It refuses a file that is damaged, is not a Trading Lab database, or was made by a **newer version** of the app than you have (update first, see *Updates and versions*).
+4. A confirmation shows what is in the backup and its date. Click **Restore and restart**.
+
+What happens next:
+
+- **Everything now in the app is replaced** by the backup: accounts, orders, journal, watchlists, settings and chats.
+- A **safety copy of your current data** is saved first, in the `backups` folder inside your data folder (the last five are kept), so a restore can itself be undone: restore that safety copy.
+- **Your API keys on this computer are kept.** You do not need to enter them again.
+- The app **restarts** by itself when it is done. If you run it from source with `npm run dev`, start it again yourself.
+
+If anything goes wrong before the swap, nothing is changed and you get a message saying why.
 
 ### Moving to another computer
 
-Copy the data folder across in the same way. One thing will not carry over: your **API keys**. They are encrypted with the keyring of the computer where you saved them, so a copy cannot read them on another machine. Open **Settings** and enter the keys again. Everything else comes across.
+Back up on the old computer, copy the file across, and use **Restore From Backup…** on the new one. Then open **Settings** and enter your API keys, since they never travel in a backup.
+
+### Copying the folder by hand
+
+You can still copy the whole data folder yourself (close the app first, and include the `-wal` and `-shm` files). That copy **does** contain your keys, encrypted for this computer. For example on Linux:
+
+```bash
+cp -r ~/.config/trading-lab ~/trading-lab-backup-2026-10-01
+```
 
 ## Starting over and removing data
 
@@ -121,7 +136,7 @@ The app creates and uses that folder instead. Your normal data is not touched. T
 | A screen shows old numbers | Click **Refresh** on that screen, or **Clear cache** in Settings |
 | A chart or table is empty after an outage | Clear the cache and open it again |
 | Settings says keys are stored unencrypted | Start your keyring and save the keys again. See *API keys* |
-| The app will not start after a restore | Make sure you copied the **whole** folder, including the `-wal` and `-shm` files, and that the app was closed when you copied it |
-| You lost your data folder | Restore your latest backup. Without one, the data cannot be recovered |
+| The app will not start after copying the folder by hand | Make sure you copied the **whole** folder, including the `-wal` and `-shm` files, and that the app was closed when you copied it. Or use **File → Restore From Backup…** with a backup file |
+| You lost your data folder | **File → Restore From Backup…** with your latest backup. Without one, the data cannot be recovered |
 
-**Next:** the **Reference** section, starting with *Keyboard shortcuts*.
+**Next:** *Updates and versions*.
