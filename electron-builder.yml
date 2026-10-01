@@ -12,7 +12,6 @@ files:
   - package.json
 asar: true
 npmRebuild: false
-electronDist: node_modules/electron/dist
 electronVersion: 44.5.1
 linux:
   target:
