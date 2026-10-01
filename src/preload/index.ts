@@ -1,0 +1,133 @@
+import { contextBridge, ipcRenderer } from 'electron'
+import type { WatchList, WlResult } from '../shared/watchlists'
+import type { JournalEditable, JournalFilter, JournalItem } from '../shared/journal'
+import type { CustomDocInput, Progress, StrategyDoc, StrategyProgress } from '../shared/strategies'
+import type { OptionsChain } from '../shared/options'
+import type { OrderSpec, TradeResult, TradeSnapshot } from '../shared/trade'
+import type { FmpScreener, FmpScreenerOptions, ScreenerQuery, FmpCongress, FmpMarket, NewsArticle, Bar, FmpAnalyst, FmpFundamentals, FmpInterval, FmpOverview, FmpResult, FmpSearchHit, FmpTestRow, Rec } from '../shared/fmp'
+import type { ChatEvent, ChatSummary, KeyStatus, SendRequest, StoredMessage } from '../shared/chat'
+
+const call = <T>(channel: string, ...args: unknown[]) => ipcRenderer.invoke(channel, ...args) as Promise<FmpResult<T>>
+
+const api = {
+  strategies: {
+    list: () => ipcRenderer.invoke('strat:list') as Promise<StrategyDoc[]>,
+    create: (input: CustomDocInput) => ipcRenderer.invoke('strat:create', input) as Promise<StrategyDoc>,
+    update: (id: string, patch: CustomDocInput) => ipcRenderer.invoke('strat:update', id, patch) as Promise<StrategyDoc | null>,
+    remove: (id: string) => ipcRenderer.invoke('strat:delete', id) as Promise<void>,
+    progress: () => ipcRenderer.invoke('strat:progress') as Promise<StrategyProgress[]>,
+    setProgress: (id: string, p: { status?: Progress; note?: string; quiz_score?: number | null }) => ipcRenderer.invoke('strat:setProgress', id, p) as Promise<StrategyProgress>,
+    onChanged: (cb: () => void) => {
+      const h = () => cb()
+      ipcRenderer.on('strategies:changed', h)
+      return () => { ipcRenderer.removeListener('strategies:changed', h) }
+    }
+  },
+  options: {
+    chain: (symbol: string, force?: boolean) => ipcRenderer.invoke('options:chain', symbol, force) as Promise<{ ok: true; data: OptionsChain } | { ok: false; error: string }>
+  },
+  watchlists: {
+    lists: () => ipcRenderer.invoke('wl:lists') as Promise<WatchList[]>,
+    create: (name: string) => ipcRenderer.invoke('wl:create', name) as Promise<WlResult<{ id: number }>>,
+    rename: (id: number, name: string) => ipcRenderer.invoke('wl:rename', id, name) as Promise<WlResult>,
+    remove: (id: number) => ipcRenderer.invoke('wl:delete', id) as Promise<WlResult>,
+    add: (id: number, symbol: string) => ipcRenderer.invoke('wl:add', id, symbol) as Promise<WlResult<{ symbol: string; added: boolean }>>,
+    removeSymbol: (id: number, symbol: string) => ipcRenderer.invoke('wl:remove', id, symbol) as Promise<WlResult>,
+    onChanged: (cb: () => void) => {
+      const h = () => cb()
+      ipcRenderer.on('watchlists:changed', h)
+      return () => { ipcRenderer.removeListener('watchlists:changed', h) }
+    }
+  },
+  journal: {
+    list: (f?: JournalFilter) => ipcRenderer.invoke('journal:list', f) as Promise<JournalItem[]>,
+    get: (id: number) => ipcRenderer.invoke('journal:get', id) as Promise<JournalItem | null>,
+    image: (id: number) => ipcRenderer.invoke('journal:image', id) as Promise<string | null>,
+    create: (input: JournalEditable & { source?: 'user' | 'claude' }) => ipcRenderer.invoke('journal:create', input) as Promise<JournalItem>,
+    update: (id: number, patch: JournalEditable) => ipcRenderer.invoke('journal:update', id, patch) as Promise<JournalItem | null>,
+    comment: (id: number, c: { by: 'user' | 'claude'; text: string }) => ipcRenderer.invoke('journal:comment', id, c) as Promise<JournalItem | null>,
+    remove: (id: number) => ipcRenderer.invoke('journal:delete', id) as Promise<void>,
+    onChanged: (cb: () => void) => {
+      const h = () => cb()
+      ipcRenderer.on('journal:changed', h)
+      return () => { ipcRenderer.removeListener('journal:changed', h) }
+    }
+  },
+  trade: {
+    snapshot: () => ipcRenderer.invoke('trade:snapshot') as Promise<TradeSnapshot>,
+    place: (spec: OrderSpec) => ipcRenderer.invoke('trade:place', spec) as Promise<TradeResult<{ orderIds: number[]; filledNow: boolean; events: { text: string }[] }>>,
+    cancel: (id: number) => ipcRenderer.invoke('trade:cancel', id) as Promise<TradeResult>,
+    modify: (id: number, patch: { limit?: number; stop?: number; qty?: number; trailAmount?: number }) => ipcRenderer.invoke('trade:modify', id, patch) as Promise<TradeResult>,
+    close: (symbol: string) => ipcRenderer.invoke('trade:close', symbol) as Promise<TradeResult<{ orderIds: number[] }>>,
+    reset: (cash: number) => ipcRenderer.invoke('trade:reset', cash) as Promise<void>,
+    onUpdate: (cb: (events: { text: string }[]) => void) => {
+      const h = (_: unknown, ev: { text: string }[]) => cb(ev)
+      ipcRenderer.on('trade:update', h)
+      return () => { ipcRenderer.removeListener('trade:update', h) }
+    }
+  },
+  tools: {
+    onCall: (cb: (c: { callId: string; name: string; input: unknown }) => void) => {
+      const h = (_: unknown, c: { callId: string; name: string; input: unknown }) => cb(c)
+      ipcRenderer.on('tool:call', h)
+      return () => { ipcRenderer.removeListener('tool:call', h) }
+    },
+    respond: (callId: string, reply: { ok: boolean; text: string; image?: string }) => ipcRenderer.invoke('tool:result', callId, reply) as Promise<void>
+  },
+  fmp: {
+    keyStatus: () => ipcRenderer.invoke('fmp:key:status') as Promise<KeyStatus>,
+    setKey: (k: string) => ipcRenderer.invoke('fmp:key:set', k) as Promise<void>,
+    clearKey: () => ipcRenderer.invoke('fmp:key:clear') as Promise<void>,
+    bars: (p: { symbol: string; interval: FmpInterval; from: string; to?: string }) => call<Bar[]>('fmp:bars', p),
+    quotes: (symbols: string[]) => call<Rec[]>('fmp:quotes', symbols),
+    search: (q: string) => call<FmpSearchHit[]>('fmp:search', q),
+    overview: (symbol: string, force?: boolean) => call<FmpOverview>('fmp:overview', symbol, force),
+    analyst: (symbol: string, force?: boolean) => call<FmpAnalyst>('fmp:analyst', symbol, force),
+    screener: (p: { query: ScreenerQuery; force?: boolean }) => call<FmpScreener>('fmp:screener', p),
+    screenerOptions: () => call<FmpScreenerOptions>('fmp:screenerOptions'),
+    congress: (p: { kind: 'latest' | 'symbol' | 'name'; chamber: 'senate' | 'house' | 'both'; symbol?: string; name?: string; page?: number; limit?: number; force?: boolean }) => call<FmpCongress>('fmp:congress', p),
+    market: (p: { date?: string; exchange?: string; force?: boolean }) => call<FmpMarket>('fmp:market', p),
+    cacheStats: () => ipcRenderer.invoke('fmp:cache:stats') as Promise<{ entries: number; bytes: number; oldest: number | null }>,
+    clearCache: () => ipcRenderer.invoke('fmp:cache:clear') as Promise<void>,
+    fundamentals: (symbol: string) => call<FmpFundamentals>('fmp:fundamentals', symbol),
+    news: (p: { symbol?: string; symbols?: string[]; general?: boolean; limit?: number; page?: number }) => call<NewsArticle[]>('fmp:news', p),
+    test: () => call<FmpTestRow[]>('fmp:test'),
+    mcpStatus: () => ipcRenderer.invoke('fmp:mcp:status') as Promise<{ ok: boolean; count?: number; transport?: string; sample?: string[]; error?: string }>
+  },
+  chat: {
+    send: (req: SendRequest) => ipcRenderer.invoke('chat:send', req) as Promise<{ ok: boolean }>,
+    stop: (requestId: string) => ipcRenderer.invoke('chat:stop', requestId) as Promise<void>,
+    list: () => ipcRenderer.invoke('chat:list') as Promise<ChatSummary[]>,
+    get: (id: string) => ipcRenderer.invoke('chat:get', id) as Promise<StoredMessage[]>,
+    remove: (id: string) => ipcRenderer.invoke('chat:delete', id) as Promise<void>,
+    keyStatus: () => ipcRenderer.invoke('chat:key:status') as Promise<KeyStatus>,
+    setKey: (key: string) => ipcRenderer.invoke('chat:key:set', key) as Promise<void>,
+    clearKey: () => ipcRenderer.invoke('chat:key:clear') as Promise<void>,
+    onEvent: (cb: (e: ChatEvent) => void) => {
+      const h = (_: unknown, e: ChatEvent) => cb(e)
+      ipcRenderer.on('chat:event', h)
+      return () => { ipcRenderer.removeListener('chat:event', h) }
+    }
+  },
+  getSetting: (key: string) => ipcRenderer.invoke('settings:get', key) as Promise<any>,
+  setSetting: (key: string, value: unknown) => ipcRenderer.invoke('settings:set', key, value) as Promise<void>,
+  openExternal: (url: string) => ipcRenderer.invoke('app:openExternal', url) as Promise<void>,
+  about: () => ipcRenderer.invoke('app:about') as Promise<{ name: string; description: string; version: string; packaged: boolean; license: string; electron: string; chromium: string; node: string; platform: string; arch: string; dataFolder: string; repository: string }>,
+  quit: () => ipcRenderer.invoke('app:quit'),
+  win: {
+    minimize: () => ipcRenderer.invoke('win:minimize'),
+    toggleMaximize: () => ipcRenderer.invoke('win:toggleMaximize'),
+    close: () => ipcRenderer.invoke('win:close'),
+    isMaximized: () => ipcRenderer.invoke('win:isMaximized') as Promise<boolean>,
+    onMaximized: (cb: (m: boolean) => void) => {
+      const h = (_: unknown, m: boolean) => cb(m)
+      ipcRenderer.on('win:maximized', h)
+      return () => { ipcRenderer.removeListener('win:maximized', h) }
+    }
+  },
+  getAccount: () => ipcRenderer.invoke('account:get') as Promise<{ cash: number; starting_cash: number }>,
+  getOpenTrades: () => ipcRenderer.invoke('trades:open') as Promise<any[]>
+}
+
+contextBridge.exposeInMainWorld('api', api)
+export type Api = typeof api

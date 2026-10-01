@@ -1,0 +1,49 @@
+{
+  "name": "trading-lab",
+  "version": "1.0.0",
+  "description": "Trading Lab: a paper-trading learning tool with charts, market data and a Claude assistant",
+  "main": "./out/main/index.js",
+  "private": true,
+  "scripts": {
+    "dev": "env -u ELECTRON_RUN_AS_NODE electron-vite dev -- --no-sandbox",
+    "build": "electron-vite build",
+    "start": "env -u ELECTRON_RUN_AS_NODE electron-vite preview -- --no-sandbox",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "dist": "electron-vite build && electron-builder --linux",
+    "dist:dir": "electron-vite build && electron-builder --linux --dir",
+    "selftest": "env -u ELECTRON_RUN_AS_NODE electron . --no-sandbox --self-test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.129.0",
+    "@modelcontextprotocol/sdk": "^1.31.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "lightweight-charts": "^5.2.1",
+    "lucide-react": "^1.49.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-markdown": "^10.1.0",
+    "react-resizable-panels": "^4.14.1",
+    "remark-gfm": "^4.0.1",
+    "typescript": "^7.0.2",
+    "vite": "^7.3.6"
+  },
+  "author": {
+    "name": "jaimie garner",
+    "email": "pacificnm@gmail.com"
+  },
+  "license": "UNLICENSED",
+  "desktopName": "trading-lab.desktop",
+  "homepage": "https://github.com/Pacificnm/trading-labs.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pacificnm/trading-labs.app.git"
+  }
+}
