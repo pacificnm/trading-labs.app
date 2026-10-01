@@ -41,9 +41,9 @@
   },
   "license": "UNLICENSED",
   "desktopName": "trading-lab.desktop",
-  "homepage": "https://github.com/Pacificnm/trading-labs.app",
+  "homepage": "https://github.com/pacificnm/trading-labs.app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Pacificnm/trading-labs.app.git"
+    "url": "https://github.com/pacificnm/trading-labs.app.git"
   }
 }
