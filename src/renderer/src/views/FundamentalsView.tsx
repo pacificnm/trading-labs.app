@@ -1,6 +1,7 @@
 import ScreenFrame, { KV } from '../components/ScreenFrame'
 import type { SymbolView } from '../components/SymbolTabs'
-import { sampleFundamentals, compact, money } from '../data/sample'
+import { sampleFundamentals } from '../data/sample'
+import { compact, money } from '../format'
 import { dash, pick, pickStr, unwrap, useAsync } from '../data/fmp'
 import type { Rec } from '../../../shared/fmp'
 

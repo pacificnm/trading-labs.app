@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react'
 import ScreenFrame, { KV, RangeBar } from '../components/ScreenFrame'
 import type { SymbolView } from '../components/SymbolTabs'
-import { sampleQuote, money, compact, pct } from '../data/sample'
+import { usePlan } from '../fmpCaps'
+import { sampleQuote } from '../data/sample'
+import { compact, money, pct } from '../format'
 import { dash, pick, pickStr, unwrap, useAsync } from '../data/fmp'
 import { formatClock, resolveTz, tzAbbr } from '../display'
 import type { FmpOverview } from '../../../shared/fmp'
@@ -56,6 +58,7 @@ const pctFmt = (n: number) => (Math.abs(n) >= 10000 ? `${n >= 0 ? '+' : ''}${Int
 const clockAt = (t: number | null) => (t == null ? '—' : `${formatClock(t, undefined, true)} ${tzAbbr(resolveTz(), t)}`)
 
 export default function QuoteView({ symbol, onNavigate, live }: { symbol: string; onNavigate: (v: SymbolView) => void; live: boolean }) {
+  const plan = usePlan()
   const force = useRef(false)
   const { data, error, loading, reload } = useAsync(async () => {
     const f = force.current; force.current = false
@@ -98,6 +101,7 @@ export default function QuoteView({ symbol, onNavigate, live }: { symbol: string
               }} />
             </section>
 
+            {!plan.unavailable.has('aftermarket') && (<>
             <section className="card-x">
               <div className="card-x-head"><h4>Aftermarket trade</h4><span className="muted">latest trade, including extended hours</span></div>
               {q.trade ? (
@@ -125,6 +129,7 @@ export default function QuoteView({ symbol, onNavigate, live }: { symbol: string
                 </>
               ) : <div className="muted">No quote data available.</div>}
             </section>
+            </>)}
 
             <section className="card-x span-all">
               <div className="card-x-head"><h4>Price performance</h4><span className="muted">% change over each period</span></div>

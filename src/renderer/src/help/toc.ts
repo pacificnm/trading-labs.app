@@ -15,7 +15,7 @@ export const HELP: HelpGroup[] = [
       { id: 'welcome', title: 'Welcome to Trading Lab', summary: 'What the app is for and how this Help library is organised.' },
       { id: 'setup', title: 'First-time setup', summary: 'Adding your FMP and Anthropic keys, and what works without them.', view: 'settings' },
       { id: 'tour', title: 'A tour of the window', summary: 'Title bar and menus, action ribbon, main panel, Claude panel and status bar.' },
-      { id: 'paper', title: 'How paper trading works', summary: 'The simulated account, starting balance, buying power and what is and is not simulated.' }
+      { id: 'paper', title: 'How paper trading works', summary: 'The simulated accounts, starting balance, buying power and what is and is not simulated.' }
     ]
   },
   {
@@ -33,7 +33,7 @@ export const HELP: HelpGroup[] = [
     id: 'trading', title: 'Trading', topics: [
       { id: 'ticket', title: 'The order ticket', summary: 'Buy and Sell, quantity, price fields, validation and the cost / risk / reward summary.', view: 'chart' },
       { id: 'order-types', title: 'Order types, brackets and OCO', summary: 'Market, limit, stop, stop-limit and trailing stop; entry + target + stop brackets.' },
-      { id: 'account', title: 'Account', summary: 'Balances, equity, buying power, positions and resetting the account.', view: 'account' },
+      { id: 'account', title: 'Account', summary: 'Several paper accounts, matching a real balance, equity, buying power and resetting an account.', view: 'account' },
       { id: 'trades', title: 'Active trades', summary: 'Positions, working orders, order history and fills; cancel orders and close positions.', view: 'trades' },
       { id: 'fills', title: 'How orders are filled', summary: 'Bar-based fills, ties between stop and target, day orders and queued market orders.' }
     ]
@@ -56,7 +56,7 @@ export const HELP: HelpGroup[] = [
       { id: 'watchlists', title: 'Watchlists', summary: 'Several lists, adding symbols from anywhere, live prices.', view: 'watch' },
       { id: 'calculator', title: 'Position calculator', summary: 'Sizing a trade from risk, your limits, live price and ATR.', view: 'calculator' },
       { id: 'journal', title: 'Trading journal', summary: 'Ideas, plans, outcomes and reviews; entries written by you or by Claude.', view: 'journal' },
-      { id: 'strategies', title: 'Trading strategies library', summary: 'The 12 study documents, chart setups, practice and progress.', view: 'strategies' }
+      { id: 'strategies', title: 'Trading strategies library', summary: 'The 13 study documents, chart setups, practice and progress.', view: 'strategies' }
     ]
   },
   {

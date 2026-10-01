@@ -5,6 +5,8 @@ import { TOOLS } from '../shared/tools'
 import { isMarketOpen, nyParts } from '../shared/nytime'
 import type { FmpMcp } from './fmpMcp'
 import type { DatabaseSync } from 'node:sqlite'
+import { readCaps } from './capsStore'
+import { TOOL_CAPS, missingAll, planNote } from '../shared/fmpCaps'
 import { SYSTEM_PROMPT, modelInfo, type ChatEvent, type SendRequest } from '../shared/chat'
 
 type EventBody<E = ChatEvent> = E extends unknown ? Omit<E, 'requestId'> : never
@@ -93,13 +95,16 @@ export function registerChat(db: DatabaseSync, secrets: Secrets, mcp: FmpMcp): v
         if (all) db.prepare("INSERT INTO chat_messages (chat_id, role, content) VALUES (?, 'assistant', ?)").run(req.chatId, all)
       }
       try {
-        let toolParams: unknown[] = TOOL_PARAMS
+        // tools whose data the user's FMP plan does not include are left out, and Claude is told why
+        const unavailable = readCaps(db)?.unavailable ?? []
+        const ownTools = TOOL_PARAMS.filter((t) => !missingAll(unavailable, TOOL_CAPS[t.name] ?? []))
+        let toolParams: unknown[] = ownTools
         if (mcp.has()) {
           try {
             const fmpTools = await mcp.tools()
             toolParams = fmpTools.length > MAX_UPFRONT_MCP_TOOLS
-              ? [...TOOL_PARAMS, { type: 'tool_search_tool_bm25_20251119', name: 'tool_search_tool_bm25' }, ...fmpTools.map((t) => ({ ...t, defer_loading: true }))]
-              : [...TOOL_PARAMS, ...fmpTools]
+              ? [...ownTools, { type: 'tool_search_tool_bm25_20251119', name: 'tool_search_tool_bm25' }, ...fmpTools.map((t) => ({ ...t, defer_loading: true }))]
+              : [...ownTools, ...fmpTools]
           } catch { /* FMP data tools are optional; the chart tools still work */ }
         }
         let final: Anthropic.Beta.BetaMessage
@@ -109,7 +114,7 @@ export function registerChat(db: DatabaseSync, secrets: Secrets, mcp: FmpMcp): v
             {
               model: info.id,
               max_tokens: 32000,
-              system: SYSTEM_PROMPT,
+              system: SYSTEM_PROMPT + planNote(unavailable),
               messages,
               tools: toolParams as Anthropic.Beta.BetaToolUnion[],
               ...(info.reasoning ? { thinking: { type: 'adaptive' as const, display: 'summarized' as const }, output_config: { effort: req.effort } } : {}),

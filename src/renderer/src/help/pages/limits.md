@@ -28,7 +28,7 @@ Results in the paper account will usually look **better** than the same trades w
 
 Fills are built from **one-minute price bars**, so the simulation cannot know the order of prices within a minute. When a bracket's stop and target are both touched in one minute, it assumes the **stop was hit first**. See *How orders are filled* and *How paper trading works*.
 
-The account also allows **2:1 margin**, which makes gains and losses larger. Real brokers have more rules, such as margin calls, borrowing costs and restrictions on short selling, that are not simulated here.
+Margin accounts allow **2:1 margin**, which makes gains and losses larger (cash accounts do not borrow or short). Real brokers have more rules, such as margin calls, borrowing costs and restrictions on short selling, that are not simulated here.
 
 **There is no live brokerage connection.** The app cannot place a real order, and Claude can never send an order, even a simulated one. See *What Claude can do*.
 
@@ -38,7 +38,7 @@ The account also allows **2:1 margin**, which makes gains and losses larger. Rea
 - **Saved copies.** To limit requests, the app reuses recent answers. The *Data as of* time shows how old a figure is. See *Data, cache and backups*.
 - **Sample data.** Without a market data key, the app shows **made-up sample prices**. They are for finding your way around only, and the app labels them clearly.
 - **Free options feed.** Options come from a public delayed feed that is not an official product, and it may change or become unavailable.
-- **Plan differences.** Some screens need a paid data plan. A red cross in **Test connection** means that feed is not available to you.
+- **Plan differences.** Some screens and chart intervals need a paid data plan. The app checks your plan and hides what it does not include. **Settings → What your FMP plan includes** shows which. Limit and stop orders are filled from the finest intraday bars your plan has, which is less exact than 1-minute data, and with none only market orders work.
 - **Holidays.** The market-open indicator ignores holidays.
 - **Accuracy of figures.** Statistics such as P/E, EPS and ratios are supplied ready-made. They are only as current and accurate as the provider's data.
 

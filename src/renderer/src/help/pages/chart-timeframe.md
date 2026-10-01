@@ -48,7 +48,7 @@ When you change **Length** and your current interval no longer fits, the app swi
 
 ## What affects your data
 
-- **Your FMP plan.** Intraday intervals (1 Min to 4 Hour) need a paid FMP plan. If your plan does not include them, the chart shows an error message instead of candles. **Settings → Test connection** lists which feeds your plan reaches.
+- **Your FMP plan.** Intraday intervals (1 Min to 4 Hour) need a paid FMP plan, and plans differ in which ones they include. The app checks this and **leaves out the intervals your plan does not include**, so the Interval list only offers ones that will load. A Length that needs an unavailable interval (for example *1 Day* when there are no intraday bars) is left out too. If the chart was on an interval your plan lacks, it switches to the closest one that works and tells you. **Settings → What your FMP plan includes** lists what you have.
 - **Weekly and monthly candles** are built by the app from daily data, so they use the same history as the Day interval.
 - **Time zone.** On intraday charts the time axis uses the zone you chose in Settings. Daily, weekly and monthly candles are dates and never shift. See *Time zone and display*.
 - **Not a streaming feed.** The chart loads when you open it or change the symbol, Length or Interval. It does not redraw tick by tick. The **Quote Details** screen shows the latest price.

@@ -4,9 +4,11 @@ import remarkGfm from 'remark-gfm'
 import { BookOpen, Copy, MessageSquare, Pencil, Plus, Search, Sparkles, Trash2, Wand2, Target, HelpCircle, ListChecks } from 'lucide-react'
 import { BUILTIN_STRATEGIES } from '../data/strategies'
 import { describeSetup, setupFromSettings } from '../chart/setup'
+import { INTERVALS, isBlocked, type Interval } from '../chart/timeframe'
 import type { ChartSettings } from '../chart/settings'
 import { CATEGORIES, PROGRESS_LABEL, type ChartSetup, type CustomDocInput, type Level, type Progress, type StrategyDoc, type StrategyProgress } from '../../../shared/strategies'
 import { toast } from '../toast'
+import CandlePatterns from '../components/CandlePatterns'
 
 const LEVELS: Level[] = ['beginner', 'intermediate', 'advanced']
 const STATES: Progress[] = ['new', 'learning', 'practiced', 'confident']
@@ -145,7 +147,8 @@ export default function StrategiesView({ symbol, chartSettings, onApplyChart, on
                 <div className="seg">{STATES.map((s) => <button key={s} className={status(doc.id) === s ? 'on' : ''} onClick={() => setStatus(s)}>{PROGRESS_LABEL[s]}</button>)}</div>
                 {progress[doc.id]?.quiz_score != null && <span className="muted">last quiz: <b>{progress[doc.id].quiz_score}%</b></span>}</div>
               <div className="st-actions">
-                {doc.chartSetup && <button className="btn primary" onClick={() => onApplyChart(doc.chartSetup!, doc.title)}><Wand2 size={13} /> Set up my chart</button>}
+                {doc.chartSetup && !isBlocked(doc.chartSetup.interval as Interval) && <button className="btn primary" onClick={() => onApplyChart(doc.chartSetup!, doc.title)}><Wand2 size={13} /> Set up my chart</button>}
+                {doc.chartSetup && isBlocked(doc.chartSetup.interval as Interval) && <span className="muted">This guide needs {INTERVALS.find((x) => x.id === doc.chartSetup!.interval)?.label ?? doc.chartSetup.interval} bars, which your FMP plan does not include.</span>}
                 <button className="btn" onClick={teach}><BookOpen size={13} /> Teach me this</button>
                 <button className="btn" onClick={quiz}><HelpCircle size={13} /> Quiz me</button>
                 <button className="btn" onClick={example}><Target size={13} /> Find an example</button>
@@ -153,6 +156,7 @@ export default function StrategiesView({ symbol, chartSettings, onApplyChart, on
                 <button className="btn" onClick={simple}><MessageSquare size={13} /> Explain simply</button>
               </div>
               <div className="md st-body"><Markdown remarkPlugins={[remarkGfm]}>{doc.body}</Markdown></div>
+              {doc.id === 'candlestick-patterns' && <CandlePatterns symbol={symbol} onAskClaude={ask} />}
               {doc.chartSetup && <section className="jr-sec"><h4>Chart setup</h4><SetupCard setup={doc.chartSetup} /></section>}
               {doc.quiz.length > 0 && <section className="jr-sec"><h4>Check yourself</h4><Quiz key={doc.id} quiz={doc.quiz} /></section>}
               <section className="jr-sec"><h4>My notes</h4>

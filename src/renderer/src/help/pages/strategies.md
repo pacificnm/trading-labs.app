@@ -10,7 +10,7 @@ The panel on the left holds every strategy.
 
 ![The strategy list with progress dots](strategies-list.png)
 
-- At the top, a counter shows how many strategies you have marked **practiced or confident**, with a progress bar. In the screenshot it reads *2 of 13*.
+- At the top, a counter shows how many strategies you have marked **practiced or confident**, with a progress bar. In the screenshot it reads *2 of 14*.
 - **Search strategies…** looks in titles, summaries, tags and categories.
 - The level chips filter by **All levels**, **beginner**, **intermediate** or **advanced**.
 - Strategies are grouped by **category**: Foundations, Trend, Breakouts, Mean reversion & momentum, Intraday, Events & options, and **My strategies** for ones you or Claude add.
@@ -28,6 +28,7 @@ The panel on the left holds every strategy.
 | Strategy | Category | Level | Chart set up for you |
 |---|---|---|---|
 | **Reading candlesticks** | Foundations | Beginner | 3 months, daily, volume |
+| **Candlestick patterns** | Foundations | Beginner | 6 months, daily, volume |
 | **Support and resistance** | Foundations | Beginner | 6 months, daily, volume |
 | **Risk first: sizing, stops and R** | Foundations | Beginner | 3 months, daily, ATR and volume |
 | **Trend following with moving averages** | Trend | Beginner | 5 years, daily, two moving averages and volume |
@@ -52,6 +53,14 @@ Click a strategy to read it.
 - **Chart setup** lists the time frame and studies the guide uses.
 - **Check yourself** has a few questions. Click **Show answer** under each to reveal it. Try answering first.
 - **My notes** is a box for what clicked, what confused you, and examples you found. It saves **automatically**.
+
+## Candlestick patterns
+
+This guide (under *Reading candlesticks*) holds a gallery of 41 patterns, grouped by how many candles they use. Use the **All patterns / bullish / bearish / neutral** chips to filter. Click a thumbnail for a close-up drawing (the pattern is highlighted and numbered, earlier candles are dimmed), how to spot it, what it says about buyers and sellers, what confirms it and when it fails.
+
+Each pattern carries a **rarity** tag (common, uncommon, rare, very rare), a rough guide to how often it appears. The tags come mostly from running the pattern rules over simulated daily prices, with a judgement call for patterns that depend on gaps, so treat them as a starting point and use the real counts below. **Measure how often on <symbol>** counts every pattern in the last 5 years of daily bars and shows the real numbers on each thumbnail and in the detail page. This needs market data (an FMP key).
+
+Press **Claude, show me on <symbol>** and Claude scans the bars loaded on your chart with fixed rules, marks every match with an arrow and the pattern name, and tells you what price did over the next few bars, including the ones that failed. If the pattern is not in the loaded bars, it says so; try a longer range or another symbol.
 
 ## The action buttons
 

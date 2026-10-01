@@ -7,7 +7,7 @@ import IndexTicker from '../components/IndexTicker'
 import WatchlistDropdown from '../components/WatchlistDropdown'
 import StarMenu from '../components/StarMenu'
 import type { WatchList } from '../../../shared/watchlists'
-import { RANGES, allowedIntervals, coerceInterval, intervalInfo, type Interval, type Range } from '../chart/timeframe'
+import { availableRanges, allowedIntervals, coerceInterval, intervalInfo, type Interval, type Range } from '../chart/timeframe'
 import Chart from '../components/Chart'
 import type { ChartSettings } from '../chart/settings'
 import type { Drawing, Tool } from '../chart/drawings'
@@ -79,7 +79,7 @@ export default function ChartView({ symbol, settings, live, candles, loading, er
         <span className="spacer" />
         <select className="tf-select" title="Length" value={settings.range}
           onChange={(e) => { const range = e.target.value as Range; onSettingsChange({ ...settings, range, interval: coerceInterval(range, settings.interval) }) }}>
-          {RANGES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
+          {availableRanges().map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
         </select>
         <select className="tf-select" title="Interval" value={settings.interval}
           onChange={(e) => onSettingsChange({ ...settings, interval: e.target.value as Interval })}>

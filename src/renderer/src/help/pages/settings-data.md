@@ -14,7 +14,7 @@ Inside it, `trading.db` is a **SQLite** database. You will also see two small he
 
 | Kept in the database | Examples |
 |---|---|
-| **Your paper account** | Cash, positions, orders and fills |
+| **Your paper accounts** | Each account's name, brokerage, link, cash, deposits and withdrawals, positions, orders and fills |
 | **Your journal** | Entries, reviews, comments and chart pictures |
 | **Your chats** | The text of each conversation with Claude |
 | **Your watchlists** | Lists and symbols |
@@ -79,7 +79,7 @@ A backup protects you from a failed disk, a mistake, or a reset you regret. The 
    Or use your file manager. Show hidden files if you cannot see `.config`. Copy the **whole folder**, including the `-wal` and `-shm` files.
 3. **Store the copy** somewhere safe, such as an external drive or another computer.
 
-Do this regularly, for example once a week, and always before a big change such as **Reset account**.
+Do this regularly, for example once a week, and always before a big change such as **Reset account** or **Delete account**.
 
 > A copy made while the app is running may be incomplete. Close the app first.
 
@@ -98,7 +98,7 @@ Copy the data folder across in the same way. One thing will not carry over: your
 
 | You want to | Do this |
 |---|---|
-| Reset the paper account only | **Account → Reset account…**. Chats, journal and settings are kept. See *Account* |
+| Reset one paper account | **Account → Reset account…**. Your other accounts, chats, journal and settings are kept. See *Account* |
 | Remove one chat | The **bin** icon in the chat history. See *The chat panel* |
 | Remove a saved key | **Remove saved key** in Settings. See *API keys* |
 | Clear the market data cache | **Clear cache** in Settings |

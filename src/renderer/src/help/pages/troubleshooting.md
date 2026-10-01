@@ -23,7 +23,8 @@ Find the symptom, then try the fixes in order. Most problems come down to a miss
 |---|---|
 | **The chart says *Sample data* and the prices are not real** | No market data key is set, or it was rejected. Add it in Settings and run **Test connection**. See *First-time setup* |
 | **A screen says to add your FMP key** | The same. Those screens need real data |
-| **Some screens work and others show an error** | Your data plan does not include every feed. **Test connection** shows which ones fail with a red cross. Intraday candles (1 minute to 4 hours) and several research feeds need a paid plan |
+| **A screen, tab or chart interval is missing** | Your FMP plan does not include the data it needs, so the app hides it. **Settings → What your FMP plan includes** lists what is missing. Upgrade your plan and click **Test connection** to bring it back, or untick **Hide features my plan does not include** to show everything |
+| **Some screens show an error** | Hiding is switched off in Settings, or the plan check has not run yet. Click **Test connection** |
 | **A chart is empty with an error and a Retry button** | Click **Retry**. If it keeps failing, check your internet connection and run **Test connection** |
 | ***FMP rate limit reached. Try again shortly.*** | Too many requests in a short time. Wait a minute. The app saves answers to reduce this. See *Data, cache and backups* |
 | ***FMP rejected the API key.*** | The key is wrong or was disabled. Copy it again from your account page and save it |
@@ -55,7 +56,11 @@ Find the symptom, then try the fixes in order. Most problems come down to a miss
 | **A bracket closed at the stop although the chart reached the target** | If one minute reached both, the simulation counts the stop first. See *How orders are filled* |
 | **An order disappeared** | Look in **Order history**. It was filled, cancelled or expired. A DAY order expires at the close |
 | **I cannot sell shares I own** | You may have shares tied up in another order, or you may be short. The ticket's message explains |
-| **My account looks wrong after a reset** | A reset deletes positions, orders and fills. See *Account* |
+| **My account looks wrong after a reset** | A reset deletes that account's positions, orders and fills. See *Account* |
+| **My positions or orders are missing** | You may have switched to another paper account. The status bar shows which one is active; switch on the *Account* screen |
+| **The order ticket closed by itself** | It closes when you switch accounts, so an order is never sent to the wrong account. Open it again |
+| **The ticket will not let me sell short** | The active account is a **cash account**, which cannot short. Use a margin account, or change the type under *Account details* |
+| **My buying power is lower than I expected** | Buying power is shown after setting aside orders still waiting to fill, and a cash account has no margin. See *Account* |
 | **There is no stop on my position** | Orders that were never placed do not show. Check **Working orders** and the bracket's entry |
 
 ## Claude
@@ -88,7 +93,7 @@ Find the symptom, then try the fixes in order. Most problems come down to a miss
 | **A symbol will not add to a watchlist** | A ticker may only use letters, numbers and `.` `^` `=` `-`, up to 15 characters |
 | **The screener returns nothing** | Loosen a filter, such as the market cap or volume minimum. See *Stock screener* |
 | **Market performance is empty** | Choose another exchange or day, or check that your plan includes it. The page falls back to the last day with data |
-| **Congress data will not load** | Some plans do not include every disclosure feed. Run **Test connection** |
+| **Congress data will not load, or the screen is missing** | Some plans do not include the disclosure feeds, and the screen is hidden when none are available. See *API keys* |
 | **News is empty** | Indexes and some funds have no company news. Try **Market news**, or a stock |
 | **A news picture is missing** | The publisher's picture could not be loaded. The story still works |
 

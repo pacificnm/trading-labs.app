@@ -2,14 +2,16 @@ Everything you trade in Trading Lab is **simulated**. No real money moves, and t
 
 ![The Account screen with a fresh paper account](paper-account.png)
 
-## Your paper account
+## Your paper accounts
 
-- You start with **$100,000** in cash. You can reset to any amount you like (see below).
+- You can keep **several paper accounts**, for example one for each real account you hold, each with its own name, brokerage and balance. One is the **active** account, and the whole app works on it. See *Account*.
+- A new installation starts with one account holding **$100,000** in cash. You can change its balance to match a real account, or reset it to any amount you like (see below).
+- Each account is a **margin account** or a **cash account**, so you can practise with the same rules your real account has.
 - **Equity** (also called net liquidation value) is your cash plus the current value of everything you hold. It is the number in the status bar.
-- **Buying power** is how much you can still put into new positions. It uses **2:1 margin**: twice your equity, minus the market value of what you already hold. A fresh account has $200,000 of buying power on $100,000 of equity.
+- **Buying power** is how much you can still put into new positions. In a **margin account** it is **2:1**: twice your equity, minus the market value of what you already hold, so a fresh $100,000 account has $200,000. In a **cash account** it is just your cash, and short selling is not allowed. Orders still waiting to fill are set aside, so the number is what you can really use. You choose the type for each account on the Account screen.
 - **Open P/L** is the profit or loss on positions you still hold, measured against the latest price. **Realized P/L** is the profit or loss locked in by closed trades. **Total return** compares your equity with your starting balance.
 
-> Margin works both ways. Buying with borrowed buying power makes gains and losses bigger. Treat the first $100,000 as your real limit while you learn.
+> Margin works both ways. Buying with borrowed buying power makes gains and losses bigger. Treat your cash, not your buying power, as your real limit while you learn.
 
 ## What you can trade
 
@@ -19,7 +21,7 @@ Everything you trade in Trading Lab is **simulated**. No real money moves, and t
 
 ## How an order gets filled
 
-Orders are checked against the real **one-minute price bars** from your market data feed. The rules are:
+Orders are checked against the real **intraday price bars** from your market data feed: **one-minute bars** when your plan includes them, otherwise the finest bars it does (5, 15, 30 or 60 minutes). With no intraday bars at all, only market orders work. The ticket and Active Trades say which bars are in use. See *How orders are filled*. The rules are:
 
 | Order | It fills when |
 |---|---|
@@ -52,9 +54,9 @@ The simulation is deliberately simple. It does **not** include:
 
 Real results will usually be a little worse than the simulation, especially for frequent trading, low-priced stocks and fast markets. Use paper trading to learn process and risk, not to predict exact profits.
 
-## Resetting the account
+## Resetting an account
 
-On the **Account** screen, click **Reset account…** and enter a starting balance. This **deletes all positions, orders and fill history** and starts again. Your journal, watchlists and settings are kept. There is no undo, so use it when you want a clean slate, for example after finishing a set of practice trades.
+On the **Account** screen, click **Reset account…** and enter a starting balance. This **deletes that account's positions, orders and fill history** and starts it again. Your other accounts, your journal, watchlists and settings are kept. There is no undo, so use it when you want a clean slate, for example after finishing a set of practice trades.
 
 ## Where to go next
 

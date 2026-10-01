@@ -6,6 +6,8 @@ For a short overview, see *How paper trading works*. For what each order type me
 
 The app does not make up fills. It takes the **real one-minute price bars** for the stock and walks through them, minute by minute, asking of each order: *would this have filled during this minute?*
 
+> **If your data plan has no 1-minute bars,** the app does the same with the finest bars it has: 5-minute, then 15-minute, 30-minute or 1-hour. Every rule on this page still applies, with "minute" meaning one of those bars. It is **less exact**: a bar covers more time, so a stop and a target touched within the same bar are more common (the stop is still counted first), and an order placed part-way through a bar only starts being checked at the next bar. The ticket and Active Trades say when this is the case. If your plan has **no intraday bars at all**, only plain market orders can be placed, and only while the market is open.
+
 Each one-minute bar records four prices: the **open**, the **high**, the **low** and the **close**. The simulation knows the bar's range, but not the order in which prices occurred **within** the minute. That one gap shapes most of the rules below.
 
 ### When an order starts being checked
@@ -111,7 +113,8 @@ If a DAY order is placed after the close, it expires at the **next** close, so i
 
 ## What happens to your account when an order fills
 
-- **Buying** takes the cost from your cash. **Selling** adds the proceeds.
+- **Buying** takes the cost from your cash. **Selling** adds the proceeds. All of it happens in the account the order was placed in, even if you have switched to another account since.
+- Proceeds from a sale are available straight away, including in a cash account. Real cash accounts make you wait for the sale to settle, which is not simulated.
 - If you add to a position you already hold, your **average price** is recalculated across all the shares.
 - When you **close or reduce** a position, the **realized profit or loss** is the difference between the fill price and your average price, times the number of shares. For a short position it is the other way round.
 - An order that would close a position you no longer hold is **rejected**, with a reason in Order history. This can happen to a leftover stop after you closed the position another way.

@@ -44,14 +44,29 @@ An environment variable cannot be removed from inside the app. Unset it before y
 
 ## Testing the market data connection
 
-Click **Test connection** in the market data section. It is available whenever a market data key exists. The app tries each data feed it uses and then shows a list.
+Click **Test connection** in the market data section. It is available whenever a market data key exists. The app tries each data feed it uses and then shows a list. The same check also runs by itself when you save a key, and again if the app later finds something is not in your plan, so you rarely need to click it. Click it after you change your FMP plan to refresh the answer.
 
 - A **green tick** means that feed answered. A short description shows what came back, such as *1 record* or *260 records*. Click the small arrow to see the field names the feed returned.
 - A **red cross** means that feed did not work. The reason is shown instead, for example *Empty response*, an error that the feed is **not included in your plan**, or that the key was **rejected**.
 - Each row gives the feed's name (*Quote*, *1-minute bars*, *Analyst consensus*, *Stock screener*, *Senate disclosures* and so on) and the endpoint it uses.
 - The list also has a row for **Claude data tools (MCP)**, which lets Claude look up extra company data, and one for **Options chain (Cboe, delayed)**, which does not use your key.
 
-A message at the end sums it up. *All N data feeds responded* means everything works. *M of N data feeds responded* means some did not, and the list shows which.
+A message at the end sums it up. *All N data feeds responded* means everything works. *M of N data feeds responded* means some did not, and the list shows which. Feeds that are **not in your plan** are counted separately, because the app switches off the features that need them (see below).
+
+## What your plan includes
+
+After a check, a box titled **What your FMP plan includes** appears under the cache line. It turns the raw results into the features you can actually use.
+
+![What your FMP plan includes](keys-plan.png)
+
+- A **✓** means the plan includes it. A **✗** means it does not, with what you lose without it.
+- **Features your plan does not include are hidden, not left to show an error.** Chart intervals it lacks (for example *1 Min*) are removed from the Interval list, and ranges that need them (such as *1 Day* without any intraday bars) are removed from the Length list. Screens whose data is entirely missing (such as *Stock Screener* or *Senate & House Trades*) disappear from the ribbon, tabs such as *News*, *Analyst Reports* and *Fundamentals* are left out, and sections such as the *Aftermarket* cards or *Analyst estimates* are not shown. A screen with several sources stays while any one of them is available.
+- **Claude** is told what is missing, and the matching tools are not offered to it, so it will not try them or promise data you do not have.
+- **If your chart was using something the plan lacks**, it moves to the closest interval that works and a message says so.
+- **Order fills adapt.** Limit and stop orders are filled by replaying real intraday bars. Without 1-minute bars the app uses the finest bars your plan has (5-minute, then 15-minute, 30-minute and 1-hour), and says so on the order ticket and in Active Trades. If the plan has **no** intraday bars, only plain market orders are offered. See *How orders are filled*.
+- The tick box **Hide features my plan does not include** turns all of this off. With it unticked everything is shown again, and anything your plan lacks goes back to showing an error. Order fills are the exception: they always use the bars your plan really has.
+
+Daily bars are never hidden, because without them there would be no chart.
 
 ### Reading the results
 

@@ -53,6 +53,8 @@ Claude prepares the ticket and you decide whether to send it. See *Trade ideas a
 
 ## Your account and positions
 
+Claude works with the **active** account. To ask about another one, switch to it on the *Account* screen first.
+
 - *How is my account doing?*
 - *How much risk am I taking across my open positions?*
 - *Which of my positions is hurting me most, and why?*

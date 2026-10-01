@@ -23,6 +23,8 @@ export function createWatchlists(db: DatabaseSync, clock: () => number = () => M
     const legacy = (() => { try { return (db.prepare('SELECT symbol FROM watchlist ORDER BY added_at, rowid').all() as { symbol: string }[]).map((r) => r.symbol) } catch { return [] } })()
     for (const s of legacy.length ? legacy : DEFAULTS) db.prepare('INSERT OR IGNORE INTO watchlist_items (list_id, symbol, added_at) VALUES (?,?,?)').run(id, s, clock())
   }
+  // the old single list has been carried over (or there was none); nothing reads it again
+  db.exec('DROP TABLE IF EXISTS watchlist')
 
   const exists = (id: number) => !!db.prepare('SELECT 1 AS x FROM watchlists WHERE id = ?').get(id)
   const cleanName = (n: unknown) => String(n ?? '').trim().replace(/\s+/g, ' ').slice(0, 40)

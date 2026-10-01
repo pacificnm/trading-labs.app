@@ -53,7 +53,8 @@ Under the fields the ticket shows what the order means in money:
 
 | Line | Meaning |
 |---|---|
-| **Buying power** | What you have free to open new positions |
+| **Account** | The **active** paper account the order will be sent to. To use another account, close the ticket and switch accounts first. The ticket closes by itself if you switch while it is open |
+| **Buying power available** | What the account has free to open new positions, after setting aside orders that are still waiting to fill. A cash account can only spend its cash |
 | **Position** | Shares you already hold in this symbol, if any |
 | **Est. cost** or **Est. proceeds** | Shares times the entry price |
 | **Risk** | The most you lose if the stop fills, and what that is as a percent of your equity |
@@ -64,10 +65,12 @@ Risk, reward and the ratio appear for brackets. They are based on the entry, sto
 
 ## Warnings and errors
 
+The list of order types and strategies depends on the price data your plan has. With no intraday bars, only **Market** and **Single order** are offered, with a note saying why; with only coarser bars, everything is offered and a note says orders are filled against those bars.
+
 The ticket checks the order as you type and shows messages under the summary:
 
 - **Amber warnings** tell you about something odd but allowed. Examples: a buy limit above the current price will fill straight away, a stop on the wrong side of the price will trigger immediately, or the reward is smaller than the risk (it tells you how often you would need to win to break even).
-- **Red errors** stop you from continuing, and **Review order** is greyed out until you fix them. Examples: a missing price, a profit target on the wrong side of the entry, selling shares you do not hold, or not enough buying power.
+- **Red errors** stop you from continuing, and **Review order** is greyed out until you fix them. Examples: a missing price, a profit target on the wrong side of the entry, selling shares you do not hold, not enough buying power, or selling short in a cash account.
 
 ## Recording the trade in your journal
 
@@ -78,7 +81,7 @@ If the ticket came from a journal entry, for example one of Claude's ideas, it s
 ## Reviewing and sending
 
 1. Check the fields and the summary, then click **Review order**.
-2. The ticket changes to **Confirm order**, showing the order in plain text, such as *BUY +20 AAPL @182.00 LMT DAY*, with the target and stop on the lines below it. It also repeats the estimated cost, the maximum risk at the stop and the reward at the target.
+2. The ticket changes to **Confirm order**, showing the order in plain text, such as *BUY +20 AAPL @182.00 LMT DAY*, with the target and stop on the lines below it. It also repeats **which account it is being sent to**, the estimated cost, the maximum risk at the stop and the reward at the target.
 3. Click **Send order** to place it, or **Back** to change something.
 
 ![The confirm order step](ticket-review.png)

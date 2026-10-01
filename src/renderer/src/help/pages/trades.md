@@ -1,4 +1,4 @@
-**Active Trades** shows everything that is happening in your paper account: the positions you hold, the orders waiting to fill, and a record of what has already happened. Open it from the **arrows** icon on the ribbon.
+**Active Trades** shows everything that is happening in your **active** paper account (the one named in the status bar; switch accounts on the *Account* screen): the positions you hold, the orders waiting to fill, and a record of what has already happened. Open it from the **arrows** icon on the ribbon.
 
 ![The Positions tab](trades-positions.png)
 
@@ -103,6 +103,7 @@ The screen refreshes about every 20 seconds, and immediately after you send, can
 - **Where did my order go?** If it is not in Working orders, look in Order history. It was filled, cancelled or expired.
 - **Why is there no stop or target on my position?** Orders that were never placed do not appear. Check that the bracket's entry filled, and look in Working orders.
 - **Why is there an order I did not place?** If **By** says **Claude ✦**, you sent a trade Claude had set up. Claude can only prepare a ticket, and an order exists only when you send it.
-- **Can I see all my history after a reset?** No. A reset deletes positions, orders and fills. See *Account*.
+- **Where are my other account's trades?** This screen shows only the active account. Switch accounts on the *Account* screen to see another account's positions, orders and history.
+- **Can I see all my history after a reset?** No. A reset deletes that account's positions, orders and fills. See *Account*.
 
 **Next:** *How orders are filled*.

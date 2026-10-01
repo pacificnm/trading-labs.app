@@ -41,6 +41,8 @@ import { DEFAULT_CALC, type CalcState } from './chart/calcState'
 import { DEFAULT_RULES, type Rules } from '../../shared/position'
 import type { JournalItem } from '../../shared/journal'
 import SettingsView from './views/SettingsView'
+import { usePlan } from './fmpCaps'
+import { INTERVALS, usableTimeframe } from './chart/timeframe'
 import WatchlistView from './views/WatchlistView'
 
 type ViewId = SymbolView | 'account' | 'trades' | 'watch' | 'screener' | 'strategies' | 'congress' | 'market' | 'marketnews' | 'journal' | 'calculator' | 'settings' | 'chartSettings' | 'help'
@@ -71,6 +73,7 @@ export default function App() {
   const [live, setLive] = useState(false)
   const refreshLive = () => window.api.fmp.keyStatus().then((k) => setLive(k.source !== 'none'))
   useEffect(() => { refreshLive() }, [])
+  const plan = usePlan()
   const [chartSettings, setChartSettings] = useState<ChartSettings>(DEFAULT_CHART_SETTINGS)
   const [display, setDisplayState] = useState<DisplaySettings>(DEFAULT_DISPLAY)
   useEffect(() => { window.api.getSetting('display').then((d) => { if (d) { const v = { ...DEFAULT_DISPLAY, ...d }; setDisplay(v); setDisplayState(v) } }) }, [])
@@ -90,6 +93,10 @@ export default function App() {
   const [ticket, setTicketState] = useState<Draft | null>(null)
   const ticketRef = useRef<Draft | null>(null)
   const setTicket = (d: Draft | null) => { ticketRef.current = d; setTicketState(d) }
+  // a half-built order must never be sent to a different account than the one it was built for
+  const accountId = snap?.account.id
+  const lastAccount = useRef<number | undefined>(undefined)
+  useEffect(() => { if (lastAccount.current !== undefined && accountId !== undefined && lastAccount.current !== accountId && ticketRef.current) { setTicket(null); toast.info('Order ticket closed because you switched accounts.') } if (accountId !== undefined) lastAccount.current = accountId }, [accountId])
   const [quote, setQuote] = useState<Quote>({ last: null, change: null, changePct: null })
   useEffect(() => {
     setQuote({ last: null, change: null, changePct: null })
@@ -171,6 +178,17 @@ export default function App() {
     setChartSettings(s)
     window.api.setSetting('chart', s)
   }
+  // When the FMP plan turns out not to include what the chart (or a screen) is using, move to something it does include instead of showing an error.
+  useEffect(() => {
+    const cur = settingsRef.current
+    const fit = usableTimeframe(cur.range, cur.interval)
+    if (fit.range !== cur.range || fit.interval !== cur.interval) {
+      updateChartSettings({ ...cur, ...fit })
+      const label = (id: string) => INTERVALS.find((i) => i.id === id)?.label ?? id
+      toast.info(`Your FMP plan has no ${label(cur.interval)} bars, so the chart switched to ${label(fit.interval)}.`, { title: 'Chart changed' })
+    }
+    if (!plan.hasScreen(view)) setView('chart')
+  }, [plan.unavailable, chartSettings.range, chartSettings.interval])
   const chartData = useChartData(symbol, chartSettings, live)
   const drawingsState = useDrawings(symbol)
 
@@ -306,7 +324,7 @@ export default function App() {
     timeZone: tz,
     chart: { range: chartSettings.range, interval: chartSettings.interval, type: chartSettings.type, scale: chartSettings.scale,
       studies: chartSettings.studies.filter((s) => s.visible).map((s) => ({ study: s.studyId, params: s.params })) },
-    account: snap ? { equity: snap.account.equity, cash: snap.account.cash, buyingPower: snap.account.buyingPower, openPL: snap.account.unrealizedPl, realizedPL: snap.account.realizedPl } : null,
+    account: snap ? { name: snap.account.name, brokerage: snap.account.broker, kind: 'paper (simulated money)', type: snap.account.type, equity: snap.account.equity, cash: snap.account.cash, buyingPowerAvailable: snap.account.buyingPower, openPL: snap.account.unrealizedPl, realizedPL: snap.account.realizedPl } : null,
     positions: snap?.positions.map((p) => ({ symbol: p.symbol, qty: p.qty, avg: p.avg, last: p.mark, unrealizedPL: p.unrealized })) ?? [],
     workingOrders: snap?.orders.filter((o) => o.status === 'working' || o.status === 'pending').length ?? 0,
     watchlists: lists.map((l) => ({ name: l.name, symbols: l.symbols })),
@@ -318,7 +336,7 @@ export default function App() {
       <TitleBar title={`${symbol} — Trading Lab`} onOpenSettings={() => setView('settings')} onOpenChartSettings={() => setView('chartSettings')} onOpenAbout={() => setAboutOpen(true)} onOpenHelp={() => openHelp()} />
       <div className="body">
         <nav className="ribbon">
-          {RIBBON.map(({ id, Icon, label }) => (
+          {RIBBON.filter((r) => plan.hasScreen(r.id)).map(({ id, Icon, label }) => (
             <button key={id} title={label} className={(id === 'chart' ? SYMBOL_VIEWS.includes(view) : view === id) ? 'active' : ''} onClick={() => setView(id)}>
               <Icon size={24} strokeWidth={1.5} />
             </button>
@@ -364,7 +382,7 @@ export default function App() {
           </Panel>
         </Group>
       </div>
-      <StatusBar symbol={symbol} equity={snap?.account.equity ?? null} buyingPower={snap?.account.buyingPower ?? null} openTrades={snap?.orders.filter((o) => o.status === 'working').length ?? 0} live={live} display={display} onOpenSettings={() => setView('settings')} />
+      <StatusBar symbol={symbol} account={snap ? { name: snap.account.name, broker: snap.account.broker } : null} onOpenAccount={() => setView('account')} equity={snap?.account.equity ?? null} buyingPower={snap?.account.buyingPower ?? null} openTrades={snap?.orders.filter((o) => o.status === 'working').length ?? 0} live={live} display={display} onOpenSettings={() => setView('settings')} />
       <Toaster />
       <DialogHost />
       {aboutOpen && <AboutDialog onClose={() => setAboutOpen(false)} />}

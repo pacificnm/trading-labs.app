@@ -23,7 +23,7 @@ The column of icons on the far left switches the main panel between screens. Hov
 | Icon | Screen | What it is for |
 |---|---|---|
 | Candlesticks | **Charts** | Charts, studies, drawing tools, the order ticket, and the per-symbol screens |
-| Wallet | **Account** | Balance, equity, buying power, positions |
+| Wallet | **Account** | Your paper accounts: switch between them, set a balance to match a real account, equity and buying power |
 | Arrows | **Active Trades** | Working orders and open positions |
 | Checklist | **Watchlists** | Your symbol lists with live prices |
 | Bar chart | **Market Performance** | Sectors, industries, gainers, losers, most active |
@@ -67,9 +67,9 @@ The blue bar along the bottom shows, from left to right:
 
 | Item | Meaning |
 |---|---|
-| **Paper account** | Reminder that all trading is simulated |
-| **Wallet value** | Your account's total value (equity). Hover for the label |
-| **BP** | Buying power: how much you can still use for new positions |
+| **Account name** | The **active** paper account and its brokerage. All trading is simulated. Click it to open the *Account* screen, where you can switch |
+| **Wallet value** | The active account's total value (equity). Hover for the label |
+| **BP** | Buying power available: how much you can still use for new positions, after orders that are waiting to fill |
 | **Working orders** | How many orders are waiting to fill |
 | **Market open / closed** and the clock | Whether US stocks are trading (9:30 to 16:00 New York time) and the time in your chosen zone. Click it to change the time zone |
 | **Symbol** | The symbol the app is currently on |

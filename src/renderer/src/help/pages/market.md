@@ -89,7 +89,7 @@ If the filters hide every stock, the card says *Nothing matches your filters*.
 
 - **Without an FMP key**, the screen asks you to add one. Click the link to go to Settings. See *First-time setup*.
 - **An error message with Retry** appears if the data could not be loaded.
-- *No sector data for this day and exchange* if the exchange has nothing for the chosen day. Some data may need a higher FMP plan, and **Settings → Test connection** shows what your plan includes.
+- *No sector data for this day and exchange* if the exchange has nothing for the chosen day. Some data may need a higher FMP plan; when your plan has neither sector nor mover data this screen is hidden, and **Settings → What your FMP plan includes** shows what you have.
 
 ## Asking Claude
 

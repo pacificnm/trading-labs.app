@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { CandlestickChart, Minus, Square, Copy, X } from 'lucide-react'
+import { Minus, Square, Copy, X } from 'lucide-react'
+import Logo from './Logo'
 
 // Frameless window: the bar is a drag region, interactive parts opt out via CSS.
 export default function TitleBar({ title, onOpenSettings, onOpenChartSettings, onOpenAbout, onOpenHelp }: { title: string; onOpenSettings: () => void; onOpenChartSettings: () => void; onOpenAbout: () => void; onOpenHelp: () => void }) {
@@ -30,7 +31,7 @@ export default function TitleBar({ title, onOpenSettings, onOpenChartSettings, o
 
   return (
     <header className="titlebar" onDoubleClick={() => window.api.win.toggleMaximize()}>
-      <CandlestickChart size={16} className="logo" />
+      <Logo size={20} />
       <div className="menus" onDoubleClick={(e) => e.stopPropagation()}>
         <div className="menu" ref={menuRef}>
           <button className={open === 'file' ? 'open' : ''} onClick={() => setOpen(open === 'file' ? null : 'file')} onMouseEnter={() => open && setOpen('file')}>File</button>

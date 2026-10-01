@@ -1,4 +1,6 @@
 // Tools Claude can call. They execute in the renderer (where the chart state lives); see renderer/src/chart/tools.ts.
+import { PATTERN_IDS } from './candlePatterns'
+
 type Schema = { type: 'object'; properties: Record<string, unknown>; required?: string[] }
 export interface ToolDef { name: string; label: string; description: string; input_schema: Schema }
 
@@ -56,6 +58,20 @@ export const TOOLS: ToolDef[] = [
         right: { type: 'integer', description: 'Bars to the right that must be lower/higher (default 5).' },
         max: { type: 'integer', description: 'Maximum number of swings to return, most recent first (default 12, max 40).' }
       }
+    }
+  },
+  {
+    name: 'find_candle_pattern',
+    label: 'Find candlestick patterns',
+    description: 'Scans the loaded bars for a named candlestick pattern using fixed, exact rules (the same ones the Candlestick patterns library teaches), including the trend before it, and returns the most recent matches with time, OHLC and what price did over the next 5 bars. By default it also marks each match on the chart with an arrow and the pattern name and switches to the chart so the user can see them. Use it to show real examples of a pattern; read around a match with get_candles to explain it. If nothing matches, say so: a longer range or another symbol may help, and you must not invent an example. Matches are evidence of a shape, never a prediction.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        pattern: { type: 'string', enum: PATTERN_IDS, description: 'Pattern id from the Candlestick patterns library.' },
+        max: { type: 'integer', description: 'How many of the most recent matches to return and mark (default 4, max 10).' },
+        mark: { type: 'boolean', description: 'Mark the matches on the chart (default true).' }
+      },
+      required: ['pattern']
     }
   },
   {

@@ -16,12 +16,12 @@ function MarketClock({ display, onClick }: { display: DisplaySettings; onClick: 
   )
 }
 
-export default function StatusBar({ symbol, equity, buyingPower, openTrades, live, display, onOpenSettings }: { symbol: string; equity: number | null; buyingPower: number | null; openTrades: number; live: boolean; display: DisplaySettings; onOpenSettings: () => void }) {
+export default function StatusBar({ symbol, account, equity, buyingPower, openTrades, live, display, onOpenSettings, onOpenAccount }: { symbol: string; account: { name: string; broker: string } | null; equity: number | null; buyingPower: number | null; openTrades: number; live: boolean; display: DisplaySettings; onOpenSettings: () => void; onOpenAccount: () => void }) {
   return (
     <footer className="statusbar">
-      <span><FlaskConical size={13} /> Paper account</span>
+      <button className="clock-btn" onClick={onOpenAccount} title="The active paper account. Click to open the Account screen, where you can switch accounts or edit this one."><FlaskConical size={13} /> {account ? `${account.name}${account.broker ? ` · ${account.broker}` : ''}${/paper/i.test(account.name) ? '' : ' (paper)'}` : 'Paper account'}</button>
       <span title="Net liquidation value"><Wallet size={13} /> {equity != null ? usd(equity) : '—'}</span>
-      <span title="Buying power">BP {buyingPower != null ? usd(buyingPower) : '—'}</span>
+      <span title="Buying power available (after working orders)">BP {buyingPower != null ? usd(buyingPower) : '—'}</span>
       <span><ArrowLeftRight size={13} /> {openTrades} working order{openTrades === 1 ? '' : 's'}</span>
       <span className="spacer" />
       <MarketClock display={display} onClick={onOpenSettings} />

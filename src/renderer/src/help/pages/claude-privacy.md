@@ -42,7 +42,7 @@ See *The chat panel* for the model and effort pickers.
 When you send a message, the app sends the following to Anthropic's servers so Claude can answer:
 
 1. **Your message**, and the **earlier messages in the same chat**.
-2. **A snapshot of your screen** attached to your newest message. It contains the screen you are on, the symbol, your time zone, the chart's time frame, chart type and studies, your **paper account figures** (equity, cash, buying power, profit and loss), your **positions**, the **number of working orders**, your **watchlists** (names and symbols), your **risk limits**, and the current time and whether the market is open.
+2. **A snapshot of your screen** attached to your newest message. It contains the screen you are on, the symbol, your time zone, the chart's time frame, chart type and studies, your **active paper account** (its name, brokerage, type, and figures such as equity, cash, buying power and profit and loss), your **positions**, the **number of working orders**, your **watchlists** (names and symbols), your **risk limits**, and the current time and whether the market is open.
 3. **The results of any tools Claude uses.** If Claude reads the chart, the candles are sent. If it reads news, the headlines are sent. If it reads your journal, the entries it opens are sent. If it looks at your chart with its screenshot tool, **a picture of your chart** is sent. Strategy guides, your progress, market data and research results it requests go the same way.
 
 Here is what the snapshot looks like, with made-up values:
@@ -85,7 +85,7 @@ Your **data key goes only to the data provider**, and Claude's tools run **insid
 ### What stays on your computer
 
 - **Your chats** are stored in the app's local database, so history survives restarts.
-- **Your paper account, orders, journal, watchlists, strategy progress, drawings and settings** are in the same database.
+- **Your paper accounts (names, brokerages, links and balances), orders, journal, watchlists, strategy progress, drawings and settings** are in the same database.
 - **Your API keys** are stored there too, **encrypted** with your system keyring when one is available. **Settings** says whether they are encrypted. See *First-time setup*.
 - The data folder is shown in **About → About Trading Lab**, and is normally `~/.config/trading-lab`. It is not uploaded anywhere.
 
@@ -93,13 +93,13 @@ Your **data key goes only to the data provider**, and Claude's tools run **insid
 
 - **Delete a chat** with the **bin** icon in the chat history. This removes it from your computer. It does not remove anything Anthropic may have already received. See their terms for that.
 - **Remove a saved key** with the button in Settings.
-- **Reset account** clears positions, orders and fills, but keeps chats, the journal and settings. See *Account*.
+- **Reset account** clears one account's positions, orders and fills, and **Delete account** removes an account with its data. Neither touches chats, the journal and settings. See *Account*.
 - To remove **everything**, close the app and delete the data folder.
 
 ## Good habits
 
 - **Do not type sensitive personal information** into the chat, such as passwords, bank details or identity numbers. Claude does not need it.
-- **Remember what your screen contains.** The snapshot includes your paper account and watchlists. If that matters to you, start a new chat and do not ask questions that need the account.
+- **Remember what your screen contains.** The snapshot includes your active paper account (including its name and brokerage) and watchlists. If that matters to you, start a new chat and do not ask questions that need the account.
 - **Set a spending limit** in the Anthropic Console.
 - **Treat Claude's answers as help, not advice.** Nothing in Trading Lab is investment advice. See *Limits and disclaimers*.
 

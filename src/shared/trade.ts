@@ -31,6 +31,7 @@ export type OrderRole = 'single' | 'entry' | 'target' | 'stop' | 'oco_a' | 'oco_
 
 export interface OrderRow {
   id: number
+  account_id: number
   group_id: string
   parent_id: number | null
   role: OrderRole
@@ -57,13 +58,20 @@ export interface OrderRow {
   note: string | null
 }
 
-export interface FillRow { id: number; order_id: number; symbol: string; side: Side; qty: number; price: number; time: number; realized_pl: number }
+export interface FillRow { id: number; account_id: number; order_id: number; symbol: string; side: Side; qty: number; price: number; time: number; realized_pl: number }
 export interface PositionView { symbol: string; qty: number; avg: number; mark: number | null; marketValue: number | null; unrealized: number | null; unrealizedPct: number | null }
 export interface AccountView {
-  cash: number; startingCash: number; equity: number; buyingPower: number
+  /** which paper account this is, and the real-world account it mirrors */
+  id: number; name: string; broker: string; url: string; type: 'cash' | 'margin'
+  cash: number; startingCash: number; equity: number
+  /** what is free to open new positions: already net of the cost of working orders */
+  buyingPower: number
+  /** cost of working orders that open positions, already taken out of buyingPower */
+  reserved: number
   realizedPl: number; unrealizedPl: number; totalReturnPct: number
 }
-export interface TradeSnapshot { account: AccountView; positions: PositionView[]; orders: OrderRow[]; fills: FillRow[]; at: number }
+/** `fillBars` is the bar size working orders are filled against: 1-minute when the data plan allows, otherwise coarser; null when the plan has no intraday bars. */
+export interface TradeSnapshot { account: AccountView; positions: PositionView[]; orders: OrderRow[]; fills: FillRow[]; at: number; fillBars: { label: string; seconds: number } | null }
 
 export type TradeResult<T = object> = ({ ok: true } & T) | { ok: false; errors: string[] }
 
@@ -82,8 +90,10 @@ export interface AnalysisCtx {
   /** signed shares currently held in this symbol (negative = short) */
   positionQty: number
   buyingPower: number
-  /** notional already committed to other working orders that open positions */
+  /** notional already committed to other working orders that open positions (leave 0 when `buyingPower` is already net of them) */
   reserved: number
+  /** false for cash accounts */
+  canShort?: boolean
 }
 export interface Analysis {
   errors: string[]
@@ -129,6 +139,7 @@ export function analyze(spec: OrderSpec, ctx: AnalysisCtx): Analysis {
   if (side === 'sell' && held < spec.qty) errors.push(held > 0 ? `You hold ${held} shares; you can sell at most ${held}.` : 'You hold no shares to sell. To bet on a decline use "Sell short".')
   if (side === 'buy_to_cover' && -held < spec.qty) errors.push(held < 0 ? `You are short ${-held} shares; you can cover at most ${-held}.` : 'You have no short position to cover.')
   if (side === 'buy' && held < 0) errors.push('You are short this symbol. Use "Buy to cover" to close it first.')
+  if (side === 'sell_short' && ctx.canShort === false) errors.push('This is a cash account, which cannot sell short. Use a margin account to short.')
   if (side === 'sell_short' && held > 0) errors.push('You hold shares of this symbol. Sell them first before shorting.')
 
   // sanity checks against the current price

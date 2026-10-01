@@ -41,11 +41,70 @@ export function initTradingSchema(db: DatabaseSync): void {
       realized_pl REAL NOT NULL DEFAULT 0
     );
     CREATE TABLE IF NOT EXISTS positions (
-      symbol TEXT PRIMARY KEY,
+      account_id INTEGER NOT NULL DEFAULT 1,
+      symbol TEXT NOT NULL,
       qty INTEGER NOT NULL,
-      avg_price REAL NOT NULL
+      avg_price REAL NOT NULL,
+      PRIMARY KEY (account_id, symbol)
     );
   `)
+}
+
+const hasColumn = (db: DatabaseSync, table: string, col: string) => (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).some((c) => c.name === col)
+
+/**
+ * Several paper accounts. Runs after initTradingSchema and is safe to repeat: it creates the accounts table, moves the old
+ * single `account` row in as account 1, and adds account_id to orders, fills and positions (existing rows belong to account 1).
+ */
+export function initAccountSchema(db: DatabaseSync): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS accounts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL DEFAULT 'margin',
+      broker TEXT NOT NULL DEFAULT '',
+      url TEXT NOT NULL DEFAULT '',
+      cash REAL NOT NULL,
+      starting_cash REAL NOT NULL,
+      created_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS account_transfers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      account_id INTEGER NOT NULL,
+      time INTEGER NOT NULL,
+      amount REAL NOT NULL,
+      note TEXT NOT NULL DEFAULT ''
+    );
+  `)
+  // The single-row `account` table of older versions becomes account 1. Copy and drop happen together, so a failure leaves the old table intact.
+  const hasLegacy = !!db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'account'").get()
+  db.exec('BEGIN')
+  try {
+    if ((db.prepare('SELECT COUNT(*) AS n FROM accounts').get() as { n: number }).n === 0) {
+      const legacy = hasLegacy ? (db.prepare('SELECT cash, starting_cash FROM account WHERE id = 1').get() as { cash: number; starting_cash: number } | undefined) : undefined
+      db.prepare("INSERT INTO accounts (id, name, cash, starting_cash, created_at) VALUES (1, 'Paper account', ?, ?, ?)").run(legacy?.cash ?? 100000, legacy?.starting_cash ?? 100000, Math.floor(Date.now() / 1000))
+    }
+    if (hasLegacy) db.exec('DROP TABLE account')
+    db.exec('COMMIT')
+  } catch (e) { db.exec('ROLLBACK'); throw e }
+  if (!hasColumn(db, 'accounts', 'type')) db.exec("ALTER TABLE accounts ADD COLUMN type TEXT NOT NULL DEFAULT 'margin'")
+  if (!hasColumn(db, 'orders', 'account_id')) db.exec('ALTER TABLE orders ADD COLUMN account_id INTEGER NOT NULL DEFAULT 1')
+  if (!hasColumn(db, 'fills', 'account_id')) db.exec('ALTER TABLE fills ADD COLUMN account_id INTEGER NOT NULL DEFAULT 1')
+  if (!hasColumn(db, 'positions', 'account_id')) {
+    db.exec(`
+      ALTER TABLE positions RENAME TO positions_old;
+      CREATE TABLE positions (
+        account_id INTEGER NOT NULL DEFAULT 1,
+        symbol TEXT NOT NULL,
+        qty INTEGER NOT NULL,
+        avg_price REAL NOT NULL,
+        PRIMARY KEY (account_id, symbol)
+      );
+      INSERT INTO positions (account_id, symbol, qty, avg_price) SELECT 1, symbol, qty, avg_price FROM positions_old;
+      DROP TABLE positions_old;
+    `)
+  }
+  db.exec('CREATE INDEX IF NOT EXISTS orders_account ON orders(account_id); CREATE INDEX IF NOT EXISTS fills_account ON fills(account_id);')
 }
 
 export function initJournalSchema(db: DatabaseSync): void {
@@ -102,3 +161,14 @@ export function initStrategySchema(db: DatabaseSync): void {
     );
   `)
 }
+
+/**
+ * Drops tables that earlier versions created and nothing uses any more. `account` is retired inside initAccountSchema and
+ * `watchlist` by createWatchlists (each right after its data has been moved). The old `trades` log was never read, so it is
+ * only dropped when it is empty; one with rows in it is left alone rather than deleting a user's data.
+ */
+export function retireLegacyTables(db: DatabaseSync): void {
+  const exists = !!db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'trades'").get()
+  if (exists && (db.prepare('SELECT COUNT(*) AS n FROM trades').get() as { n: number }).n === 0) db.exec('DROP TABLE trades')
+}
+

@@ -2,7 +2,11 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 
 ## A
 
+**Account type** — Whether a paper account is a **margin** account (2:1 buying power, short selling allowed) or a **cash** account (buying power is your cash, no short selling). See *Account*.
+
 **Action** — On the order ticket, whether you are **Buy**, **Sell**, **Sell short** or **Buy to cover**. See *The order ticket*.
+
+**Active account** — The paper account the app is working on right now. New orders go to it, and Active Trades, the calculator and Claude use it. It is named in the status bar. See *Account*.
 
 **ADX (Average Directional Index)** — A study that measures how **strong** a trend is, whichever way it points. A reading above 25 is usually called a strong trend. See *Chart settings and studies*.
 
@@ -32,7 +36,7 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 
 **Bull market, bullish** — A rising market, or an expectation that prices will rise.
 
-**Buying power** — How much you can still use to open new positions. In the paper account it is twice your equity minus the market value of what you hold. See *Account*.
+**Buying power** — How much you can still use to open new positions. In a margin paper account it is twice your equity minus the market value of what you hold; in a cash account it is your cash. Orders waiting to fill are set aside. See *Account*.
 
 ## C
 
@@ -79,6 +83,8 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 **Fibonacci retracement** — A set of horizontal levels (0, 0.236, 0.382, 0.5, 0.618, 0.786 and 1) drawn between two points of a move. Traders watch them as possible places for a pullback to stop. See *Drawing tools*.
 
 **Fill** — The execution of an order, at a particular price. See *How orders are filled*.
+
+**FMP plan** — The subscription level of your market-data account. It decides which data you can get, such as which chart intervals and screens. Trading Lab checks it and hides what it does not include. See *API keys*.
 
 **Free cash flow** — Cash left after a company pays to run and maintain its business. See *Fundamentals*.
 
@@ -130,7 +136,7 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 
 **MACD (Moving Average Convergence Divergence)** — A study built from two EMAs, with a signal line and a histogram, used to read momentum.
 
-**Margin** — Borrowed buying power. The paper account allows 2:1.
+**Margin** — Borrowed buying power. A margin paper account allows 2:1; a cash account has none. See *Account*.
 
 **Market cap** — A company's total value: share price times the number of shares. *Large-cap* means a big company and *small-cap* a smaller one.
 
@@ -168,7 +174,7 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 
 **P/S (Price to sales)** — Market cap divided by revenue.
 
-**Paper trading** — Trading with simulated money to practise. See *How paper trading works*.
+**Paper trading** — Trading with simulated money to practise. You can keep several paper accounts, each mirroring a real one. See *How paper trading works* and *Account*.
 
 **PEG** — The P/E divided by expected earnings growth.
 

@@ -32,6 +32,8 @@ export default function TradesView({ snap, onChanged, onSelectSymbol }: { snap: 
   return (
     <div className="col">
       <div className="pane-title"><span>Active Trades</span></div>
+      {snap.fillBars === null && <div className="pad muted">Your FMP plan has no intraday price bars, so only market orders can be filled (while the market is open). Limit, stop, bracket and OCO orders are not available.</div>}
+      {snap.fillBars && snap.fillBars.seconds > 60 && <div className="pad muted">Working orders are filled against {snap.fillBars.label} bars, because your FMP plan has no 1-minute bars. Fills are less exact than with 1-minute data.</div>}
       <div className="subtabs">
         {([['positions', `Positions (${snap.positions.length})`], ['working', `Working orders (${working.length})`], ['history', 'Order history'], ['fills', 'Fills']] as const).map(([id, l]) => (
           <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{l}</button>

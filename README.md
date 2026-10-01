@@ -12,21 +12,21 @@ A desktop app for **learning to trade with paper money**. It combines live-data 
 - Candlestick, hollow, bar, line, area and Heikin Ashi charts on TradingView's open-source [Lightweight Charts](https://github.com/tradingview/lightweight-charts), from 1-minute to monthly bars.
 - 23 studies (moving averages, Bollinger, Ichimoku, Supertrend, RSI, MACD, ADX, VWAP, pivots and more) with editable parameters and **per-line colors**.
 - Drawing tools: trendlines, rays, horizontal lines, Fibonacci retracements, rectangles.
-- A **paper account** with a Think-or-Swim-style order ticket: market, limit, stop, stop-limit and trailing-stop orders, brackets and OCO. Draft and working orders appear as draggable lines on the chart. Fills are simulated from real 1-minute bars.
+- **Several paper accounts**, each with a name, brokerage, link and balance you can set to mirror your real accounts (cash or margin), and a Think-or-Swim-style order ticket: market, limit, stop, stop-limit and trailing-stop orders, brackets and OCO. Draft and working orders appear as draggable lines on the chart. Fills are simulated from real 1-minute bars.
 - A **position calculator** that sizes trades from risk, capped by your own limits (max risk per trade, per position and total invested), using live price and ATR.
 - A **trading journal** that records the plan, the reasoning and the real outcome (computed from your fills), with a review section.
 
-**Research screens** (Financial Modeling Prep data)
+**Research screens** (Financial Modeling Prep data). The app checks which data your FMP plan includes and hides the screens, chart intervals and Claude tools it does not, instead of showing errors.
 - Quote details, analyst ratings and targets, fundamentals, news, delayed **options chains** (Cboe), market performance by sector and industry, a **stock screener**, market and symbol news, and Senate and House trade disclosures.
 - Multiple watchlists, with live prices.
 
 **Learning**
-- A **strategy library** of 12 documents (candlesticks, support and resistance, risk, trend following, pullbacks, breakouts, RSI, Bollinger, MACD, opening range, earnings, options) with rules, mistakes, practice and self-check questions. One click sets your chart up for a strategy.
+- A **strategy library** of 13 documents (candlesticks, a gallery of 41 candlestick patterns, support and resistance, risk, trend following, pullbacks, breakouts, RSI, Bollinger, MACD, opening range, earnings, options) with rules, mistakes, practice and self-check questions. One click sets your chart up for a strategy.
 - Progress tracking per strategy.
 
 **Claude assistant** (right-hand panel)
 - Choose the model and the effort level.
-- 45 tools: read the chart, candles, study values and swing points; add studies; draw on the chart; read the account, journal, watchlists, news, screener, options, analyst data and the strategy library; set up an order ticket; write journal entries and strategy documents; and more.
+- 46 tools: read the chart, candles, study values and swing points; add studies; draw on the chart; read the account, journal, watchlists, news, screener, options, analyst data and the strategy library; set up an order ticket; write journal entries and strategy documents; and more.
 - **Claude can prepare an order ticket but can never send, cancel or change an order.** You review and send every trade.
 
 ![Strategy library](docs/screenshots/strategies.png)
@@ -37,7 +37,7 @@ A full **Help library** is built in: 41 pages with screenshots and step-by-step 
 
 ## Requirements
 
-- **Linux.** Developed and tested on Raspberry Pi OS (arm64). Packaged builds for arm64 are tested; x86-64 is untested.
+- **Linux.** Developed on Raspberry Pi OS (arm64) and also built and run on x86-64 (Debian 13): the unpacked build and the AppImage pass `--self-test` there. The x86-64 `.deb` builds with the right metadata but has not been installed.
 - **Node.js 22 or newer** and npm (to run from source). Electron 44 bundles its own Node 24, so end users of the packaged app need neither.
 - A **[Financial Modeling Prep](https://site.financialmodelingprep.com/) API key.** Without one the app runs on sample data, and trading is disabled because simulated fills need real prices. Intraday history and some endpoints need a paid plan. Options data does not use FMP.
 - An **[Anthropic API key](https://console.anthropic.com/)** for the Claude panel (optional; everything else works without it).
@@ -58,11 +58,11 @@ Then open **File → Settings** and paste your FMP and Anthropic keys.
 
 ```bash
 npm run dist         # AppImage and .deb in ./release (about 90 seconds)
-npm run dist:dir     # just the unpacked folder: release/linux-arm64-unpacked/trading-lab
+npm run dist:dir     # just the unpacked folder: release/linux-unpacked/trading-lab (linux-arm64-unpacked on arm64)
 ```
 
 - AppImage: `chmod +x release/Trading-Lab-*.AppImage && ./release/Trading-Lab-*.AppImage`
-- Debian: `sudo apt install ./release/trading-lab_*_arm64.deb` (adds a menu entry and a `trading-lab` command)
+- Debian: `sudo apt install ./release/trading-lab_*.deb` (adds a menu entry and a `trading-lab` command)
 
 ### Check an install
 
@@ -73,7 +73,7 @@ npm run dist:dir     # just the unpacked folder: release/linux-arm64-unpacked/tr
 
 ## Your data and privacy
 
-- Everything lives in **`~/.config/trading-lab`**: a SQLite database (`trading.db`) with the paper account, orders, journal, watchlists, strategy progress, settings, and a cache of market data. The dev build, the AppImage and the `.deb` all share this folder.
+- Everything lives in **`~/.config/trading-lab`**: a SQLite database (`trading.db`) with the paper accounts, orders, journal, watchlists, strategy progress, settings, and a cache of market data. The dev build, the AppImage and the `.deb` all share this folder.
 - API keys are stored encrypted through the system keyring when it is available.
 - Set `TRADING_DATA_DIR` to use a different folder (handy for testing).
 - Network use: `financialmodelingprep.com` (market data and its MCP server), `cdn.cboe.com` (delayed options), `api.anthropic.com` (the assistant), and publishers' image servers for news thumbnails. Your FMP key is only ever sent to FMP; Claude's tool calls run inside the app.
