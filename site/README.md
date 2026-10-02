@@ -30,6 +30,29 @@ The page avoids exact counts (it says "40+ lessons", "60+ candlestick patterns")
 
 Dark by default to match the app, light when the visitor's system asks for it (`prefers-color-scheme`). The layout works from phone width up. Colors are CSS variables at the top of `style.css`.
 
-## Hosting
+## Hosting on Cloudflare Pages
 
-Nothing is deployed yet. Any static host works (GitHub Pages, Netlify, Cloudflare Pages, a bucket). For GitHub Pages, publish the `site/` folder with an Actions workflow; it is not set up here.
+The site is plain files, so Cloudflare Pages needs no build. Pick one of these.
+
+**Option 1: connect the repository (recommended).** Cloudflare then redeploys by itself on every push to `main`, and no token or secret is stored anywhere.
+
+1. In the Cloudflare dashboard open **Workers & Pages**, choose **Create**, then **Pages**, then **Connect to Git**, and pick `pacificnm/trading-labs.app`.
+2. Set the production branch to `main`, leave the **build command empty**, and set the **build output directory** to `site`.
+3. Save and deploy. Under **Custom domains** you can attach your own domain.
+
+**Option 2: upload from your computer.** Needs the Wrangler CLI and a one-time browser login that only you can do:
+
+```bash
+npx wrangler login
+npx wrangler pages deploy site --project-name trading-lab
+```
+
+Wrangler creates the project the first time. Run the second command again to publish changes.
+
+**What the site relies on**
+
+- `_headers` is read by Cloudflare Pages. It sets a strict Content-Security-Policy (the page loads only its own files and asks `api.github.com` for the latest release) and a few other headers. If you change `main.js` to contact another address, add it to `connect-src` there, or the browser will block it.
+- Nothing else is needed: no functions, redirects or environment variables. The download buttons talk to GitHub from the visitor's browser.
+- GitHub's unauthenticated API allows 60 requests an hour per visitor, which is plenty here, and the page falls back to a link to the release page if it is ever refused.
+
+Other static hosts work too (GitHub Pages, Netlify, a bucket): publish the `site/` folder and set the same headers there.

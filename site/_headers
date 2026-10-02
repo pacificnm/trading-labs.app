@@ -1,0 +1,10 @@
+# Security headers for Cloudflare Pages (other hosts ignore this file; set the same headers there).
+# The page loads only its own files and asks api.github.com for the latest release, so that is all the policy allows.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://api.github.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+/img/*
+  Cache-Control: public, max-age=604800
