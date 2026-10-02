@@ -74,8 +74,8 @@ Two pickers sit under the message box. The choices are remembered the next time 
 
 | Model | Best for |
 |---|---|
-| **Claude Opus 5.5** | The most capable everyday model. This is the starting choice |
-| **Claude Sonnet 5.5** | Fast and capable, at a lower cost |
+| **Claude Opus 5.5** | The most capable everyday model, and costs more than Sonnet |
+| **Claude Sonnet 5.5** | Fast and capable, at a lower cost. This is the starting choice, at **Medium** effort |
 | **Claude Fable 5.1** | The deepest reasoning. Slowest and highest cost |
 | **Claude Haiku 4.5** | The fastest and cheapest. It has no effort setting |
 
@@ -90,6 +90,10 @@ Two pickers sit under the message box. The choices are remembered the next time 
 | **High** | Thorough analysis |
 | **Extra high** | Deep analysis for hard problems |
 | **Max** | Maximum effort and the highest cost |
+
+### The default, and changing it for one session
+
+The pickers here change the model and effort **for the current session only**. The next time you start the app, the chat goes back to your **default**, which you set in **File → Settings → Claude model and effort** (see *API keys*). That way trying Opus on one hard question never leaves it switched on.
 
 Each model starts on a sensible effort when you choose it. **Haiku** has no effort control, so the effort picker is greyed out for it.
 

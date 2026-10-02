@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { WatchList, WlResult } from '../shared/watchlists'
+import type { AccountLink, Kind, Mode, Pf, PfResult } from '../shared/portfolio'
 import type { JournalEditable, JournalFilter, JournalItem } from '../shared/journal'
 import type { CustomDocInput, Progress, StrategyDoc, StrategyProgress } from '../shared/strategies'
 import type { OptionsChain } from '../shared/options'
@@ -28,6 +29,25 @@ const api = {
   },
   options: {
     chain: (symbol: string, force?: boolean) => ipcRenderer.invoke('options:chain', symbol, force) as Promise<{ ok: true; data: OptionsChain } | { ok: false; error: string }>
+  },
+  portfolio: {
+    list: () => ipcRenderer.invoke('pf:list') as Promise<Pf[]>,
+    create: (name: string, amount?: number) => ipcRenderer.invoke('pf:create', name, amount) as Promise<PfResult<{ id: number }>>,
+    update: (id: number, patch: { name?: string; amount?: number; mode?: Mode; fractional?: boolean; leftover?: boolean; accountId?: number | null }) => ipcRenderer.invoke('pf:update', id, patch) as Promise<PfResult>,
+    remove: (id: number) => ipcRenderer.invoke('pf:remove', id) as Promise<PfResult>,
+    addItem: (pid: number, input: { symbol: string; name?: string; kind?: Kind }) => ipcRenderer.invoke('pf:addItem', pid, input) as Promise<PfResult<{ id: number; symbol: string }>>,
+    updateItem: (id: number, patch: { targetPct?: number; shares?: number; cost?: number; manualPrice?: number | null; kind?: Kind; name?: string }) => ipcRenderer.invoke('pf:updateItem', id, patch) as Promise<PfResult>,
+    removeItem: (id: number) => ipcRenderer.invoke('pf:removeItem', id) as Promise<PfResult>,
+    setTargets: (pid: number, targets: { id: number; pct: number }[]) => ipcRenderer.invoke('pf:setTargets', pid, targets) as Promise<PfResult>,
+    accountView: (accountId: number) => ipcRenderer.invoke('pf:accountView', accountId) as Promise<{ ok: true; data: AccountLink & { type: 'cash' | 'margin'; equity: number } } | { ok: false; error: string }>,
+    placeOrders: (pid: number, side: 'buy' | 'sell', orders: { symbol: string; qty: number }[]) => ipcRenderer.invoke('pf:placeOrders', pid, side, orders) as Promise<{ ok: true; outcomes: { symbol: string; qty: number; ok: boolean; filledNow?: boolean; error?: string }[]; events: { text: string }[] } | { ok: false; error: string }>,
+    recordSells: (pid: number, sells: { id: number; shares: number }[]) => ipcRenderer.invoke('pf:recordSells', pid, sells) as Promise<PfResult<{ recorded: number }>>,
+    recordBuys: (pid: number, buys: { id: number; shares: number; price: number }[]) => ipcRenderer.invoke('pf:recordBuys', pid, buys) as Promise<PfResult<{ recorded: number }>>,
+    onChanged: (cb: () => void) => {
+      const h = () => cb()
+      ipcRenderer.on('portfolio:changed', h)
+      return () => { ipcRenderer.removeListener('portfolio:changed', h) }
+    }
   },
   watchlists: {
     lists: () => ipcRenderer.invoke('wl:lists') as Promise<WatchList[]>,

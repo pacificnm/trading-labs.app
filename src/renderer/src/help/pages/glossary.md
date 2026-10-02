@@ -12,6 +12,8 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 
 **Aftermarket** — Trading outside regular hours, before the open and after the close. Quote details shows the latest aftermarket trade and quote. See *Quote details*.
 
+**Allocation** — How your money is split between holdings, as percentages. In the *Portfolio* screen each holding has a **target** percentage. See *Portfolio*.
+
 **Ask** — The lowest price a seller is currently willing to accept. You pay the ask when you buy at the market. Compare **bid**.
 
 **ATR (Average True Range)** — The average size of a candle's high-to-low range over a set number of candles (14 by default). It measures how much a stock typically moves, and it is used to place stops and to size positions. See *Position calculator*.
@@ -50,6 +52,8 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 
 **Consensus** — The overall view of a group of analysts, shown as a rating (such as Buy) and an average price target. See *Analyst reports*.
 
+**Cost basis** — What you paid for a holding, including fees. The *Portfolio* screen calls it **Total paid**, and gain or loss is the value now minus the cost basis.
+
 **Cover** — To buy back shares you sold short, closing the short position (**Buy to cover**).
 
 **Crosshair** — The lines that follow your mouse over the chart and show the exact price and time. It can be **Free** or **Magnet** (snapping to the nearest candle's open, high, low or close).
@@ -63,6 +67,8 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 **Dividend** — A payment some companies make to shareholders. The **dividend yield** is the yearly dividend as a percent of the price.
 
 **Drawdown** — A fall from a high point in the value of an account or a position.
+
+**Drift** — How far a holding's actual share of your portfolio has moved from its target, in percentage points. Winners drift above target, losers below. See *Holdings and value*.
 
 ## E
 
@@ -148,7 +154,11 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 
 **Moving average** — The average price over a set number of candles. It smooths the price to show the trend. See *Chart settings and studies*.
 
+**Mutual fund** — A pooled fund you buy from the fund company rather than on an exchange. It is priced once a day after the close, at its net asset value, and can be bought in fractions of a share. See *Portfolio*.
+
 ## N
+
+**NAV (Net asset value)** — The value of one share of a mutual fund (or ETF's holdings): total assets minus liabilities, divided by the number of shares. Mutual funds trade at the NAV calculated after the close.
 
 **Net P/L** — Total profit or loss after everything, as in the journal's summary.
 
@@ -200,17 +210,19 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 
 ## R
 
-**Restore** — Replacing your current data with a backup, using **File → Restore From Backup…**. A safety copy of the current data is saved first. See *Data, cache and backups*.
-
 **R (R multiple)** — A result measured in units of your planned risk. If you risked $100 and made $200, you made **+2R**. See *Trading journal*.
 
 **Rate of Change (ROC)** — A study showing the percent change in price over a set number of candles.
 
 **Realized P/L** — Profit or loss locked in by closed trades.
 
+**Rebalancing** — Bringing a portfolio back to its target mix, by adding money to what has fallen behind or selling some of what has grown. The *Portfolio* screen shows the drift and, in *Total size* mode, how to top up. It never sells for you.
+
 **Relative volume** — Today's volume divided by the stock's average volume. It finds stocks that are unusually busy. See *Stock screener*.
 
 **Resistance** — A price level where rises have repeatedly stopped.
+
+**Restore** — Replacing your current data with a backup, using **File → Restore From Backup…**. A safety copy of the current data is saved first. See *Data, cache and backups*.
 
 **Reward-to-risk** — The size of the potential gain compared with the size of the potential loss. A ratio of 2:1 means you aim to make twice what you risk.
 
@@ -248,6 +260,8 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 
 ## T
 
+**Take profits** — Selling part of a holding that has gone up, to lock in some of the gain. The *Sell* tab of the Portfolio screen plans it as a percentage. See *Selling a share of the portfolio*.
+
 **Technical analysis** — Studying price charts and indicators to judge what may happen next. Compare **fundamentals**.
 
 **Theta** — For an option, how much value it loses each day from the passage of time.
@@ -257,6 +271,8 @@ Plain-language meanings of the trading terms used in Trading Lab. Where a term w
 **Trailing stop** — A stop that follows the price at a fixed distance and never moves against you.
 
 **Trend** — The general direction of price. An uptrend has higher highs and higher lows.
+
+**Trim** — Selling a little of a holding that has grown beyond its target, rather than all of it. *Overweight first* on the Sell tab does this.
 
 **TTM (Trailing twelve months)** — The most recent four quarters added together.
 

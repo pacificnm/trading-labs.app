@@ -26,6 +26,7 @@ The column of icons on the far left switches the main panel between screens. Hov
 | Wallet | **Account** | Your paper accounts: switch between them, set a balance to match a real account, equity and buying power |
 | Arrows | **Active Trades** | Working orders and open positions |
 | Checklist | **Watchlists** | Your symbol lists with live prices |
+| Pie chart | **Portfolio** | Plan an allocation of stocks, ETFs and funds, calculate shares to buy, and track what you hold |
 | Bar chart | **Market Performance** | Sectors, industries, gainers, losers, most active |
 | Building | **Senate & House Trades** | Congressional trade disclosures |
 | Newspaper | **Market News** | General and watchlist-related news |

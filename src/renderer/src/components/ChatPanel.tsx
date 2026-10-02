@@ -4,7 +4,7 @@ import remarkGfm from 'remark-gfm'
 import { ArrowUp, Square, Plus, History, Sparkles, User, Trash2, ChevronRight, AlertCircle, KeyRound, Loader2, Check, X, Wrench } from 'lucide-react'
 import Picker from './Picker'
 import { toast } from '../toast'
-import { EFFORTS, MODELS, modelInfo, type ChatEvent, type ChatSummary, type Effort, type KeyStatus } from '../../../shared/chat'
+import { DEFAULT_PREFS, EFFORTS, MODELS, modelInfo, normalizePrefs, type ChatEvent, type ChatSummary, type Effort, type KeyStatus } from '../../../shared/chat'
 import { toolLabel } from '../../../shared/tools'
 
 type Part =
@@ -42,7 +42,7 @@ export default function ChatPanel({ context, symbol, externalPrompt, onOpenSetti
   const [messages, setMessages] = useState<Msg[]>([])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
-  const [prefs, setPrefs] = useState<Prefs>({ model: MODELS[0].id, effort: MODELS[0].defaultEffort })
+  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS)
   const [history, setHistory] = useState<ChatSummary[] | null>(null)
   const [key, setKey] = useState<KeyStatus | null>(null)
   const requestId = useRef<string | null>(null)
@@ -51,8 +51,12 @@ export default function ChatPanel({ context, symbol, externalPrompt, onOpenSetti
   const histRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    window.api.getSetting('chatPrefs').then((p: Prefs | null) => p && setPrefs({ ...prefs, ...p }))
+    // the default comes from Settings; the picker below overrides it for this session only
+    window.api.getSetting('chatDefaults').then((p) => setPrefs(normalizePrefs(p)))
+    const onDefaults = (e: Event) => setPrefs(normalizePrefs((e as CustomEvent).detail))
+    window.addEventListener('chat-defaults-changed', onDefaults)
     window.api.chat.keyStatus().then(setKey)
+    return () => window.removeEventListener('chat-defaults-changed', onDefaults)
   }, [])
 
   const patchLast = useCallback((fn: (m: Msg) => Msg) => setMessages((ms) => ms.map((m, i) => (i === ms.length - 1 ? fn(m) : m))), [])
@@ -84,7 +88,7 @@ export default function ChatPanel({ context, symbol, externalPrompt, onOpenSetti
     return () => document.removeEventListener('mousedown', away)
   }, [history])
 
-  const savePrefs = (p: Prefs) => { setPrefs(p); window.api.setSetting('chatPrefs', p) }
+  const savePrefs = (p: Prefs) => setPrefs(p)
   const info = modelInfo(prefs.model)
 
   const send = async (text = input) => {

@@ -14,6 +14,7 @@ import type { Drawing, Tool } from '../chart/drawings'
 import type { Candle } from '../chart/indicators'
 import type { OrderLine } from '../chart/drawings'
 import type { ReactNode } from 'react'
+import { formatClock } from '../display'
 
 const TOOLS: { id: Tool; Icon: LucideIcon; label: string }[] = [
   { id: 'cursor', Icon: MousePointer2, label: 'Cursor (select / edit drawings)' },
@@ -32,6 +33,11 @@ interface Props {
   loading: boolean
   error: string | null
   onReload: () => void
+  /** key of the candles on screen (symbol|length|interval) */
+  dataKey: string | null
+  /** when the data was last read or re-checked, and the last refresh problem */
+  checkedAt: number | null
+  refreshError: string | null
   drawings: Drawing[]
   onDrawingsChange: (d: Drawing[]) => void
   onSettingsChange: (s: ChartSettings) => void
@@ -52,7 +58,7 @@ interface Props {
   overlay?: ReactNode
 }
 
-export default function ChartView({ symbol, settings, live, candles, loading, error, onReload, drawings, onDrawingsChange: change, onSettingsChange, onSymbolChange, onNavigate, onOpenSettings, orderLines, onOrderLineMove, onOpenTicket, tz, hour12, lists, activeListId, onActiveListChange, onManageWatchlist, onToggleInList, onCreateList, overlay }: Props) {
+export default function ChartView({ symbol, settings, live, candles, loading, error, onReload, dataKey, checkedAt, refreshError, drawings, onDrawingsChange: change, onSettingsChange, onSymbolChange, onNavigate, onOpenSettings, orderLines, onOrderLineMove, onOpenTicket, tz, hour12, lists, activeListId, onActiveListChange, onManageWatchlist, onToggleInList, onCreateList, overlay }: Props) {
   const [tool, setTool] = useState<Tool>('cursor')
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -107,6 +113,11 @@ export default function ChartView({ symbol, settings, live, candles, loading, er
             </div>
           )}
         </div>
+        {live && checkedAt && (
+          <span className={'chart-updated' + (refreshError ? ' err' : '')} title={refreshError ? `Could not update: ${refreshError}. It will try again.` : 'The chart refreshes itself while the market is open. How often depends on the interval.'}>
+            {refreshError ? 'Update failed, retrying' : `Updated ${formatClock(checkedAt / 1000, undefined, true)}`}
+          </span>
+        )}
         <button className="tbtn buy" onClick={() => onOpenTicket('buy')}>Buy</button>
         <button className="tbtn sell" onClick={() => onOpenTicket('sell')}>Sell</button>
       </div>
@@ -115,7 +126,7 @@ export default function ChartView({ symbol, settings, live, candles, loading, er
           {!live && <button className="chart-note" onClick={onOpenSettings}>Sample data — add your FMP key in Settings</button>}
           {live && loading && <div className="chart-note">Loading…</div>}
           {live && error && <div className="chart-note err">{error} <button onClick={onReload}>Retry</button></div>}
-          {candles && <Chart candles={candles} intraday={intervalInfo(settings.interval).intraday} tz={tz} hour12={hour12} settings={settings} tool={tool} onToolChange={setTool} drawings={drawings} onDrawingsChange={change} orderLines={orderLines} onOrderLineMove={onOrderLineMove} />}
+          {candles && <Chart candles={candles} dataKey={dataKey ?? ''} intraday={intervalInfo(settings.interval).intraday} tz={tz} hour12={hour12} settings={settings} tool={tool} onToolChange={setTool} drawings={drawings} onDrawingsChange={change} orderLines={orderLines} onOrderLineMove={onOrderLineMove} />}
         </div>
         {overlay}
       </div>

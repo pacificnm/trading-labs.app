@@ -98,6 +98,13 @@ The paper account trades stocks only, so Claude teaches from options but cannot 
 - *What should I study next, based on my progress?*
 - *Help me write my own strategy about gap fades.*
 
+## Your portfolio
+
+- *Review my Retirement portfolio. Is it concentrated anywhere?*
+- *How far have my holdings drifted from their targets?*
+- *Explain my gains and losses in plain words.*
+- *What should I double-check before I add more money to it?*
+
 ## Your journal and habits
 
 - *Review my journal entry about the NVDA trade and be honest.*

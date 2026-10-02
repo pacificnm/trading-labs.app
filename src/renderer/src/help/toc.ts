@@ -54,9 +54,13 @@ export const HELP: HelpGroup[] = [
   {
     id: 'planning', title: 'Planning and learning', topics: [
       { id: 'watchlists', title: 'Watchlists', summary: 'Several lists, adding symbols from anywhere, live prices.', view: 'watch' },
+      { id: 'portfolio', title: 'Portfolio', summary: 'Plan an allocation of stocks, ETFs and mutual funds, and track what you hold.', view: 'portfolio' },
+      { id: 'portfolio-plan', title: 'The allocation calculator', summary: 'Percentages to shares: new money or total size, fractions, leftover cash.', view: 'portfolio' },
+      { id: 'portfolio-sell', title: 'Selling a share of the portfolio', summary: 'Take profits: pick a percentage, see the shares to sell, then record it or send paper sell orders.', view: 'portfolio' },
+      { id: 'portfolio-holdings', title: 'Holdings and value', summary: 'Record what you own, see its value, gain and drift from your targets.', view: 'portfolio' },
       { id: 'calculator', title: 'Position calculator', summary: 'Sizing a trade from risk, your limits, live price and ATR.', view: 'calculator' },
       { id: 'journal', title: 'Trading journal', summary: 'Ideas, plans, outcomes and reviews; entries written by you or by Claude.', view: 'journal' },
-      { id: 'strategies', title: 'Trading strategies library', summary: 'The 13 study documents, chart setups, practice and progress.', view: 'strategies' }
+      { id: 'strategies', title: 'Trading strategies library', summary: 'The 44 study documents, chart setups, practice and progress.', view: 'strategies' }
     ]
   },
   {

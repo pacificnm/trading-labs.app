@@ -107,6 +107,14 @@ See *Trading journal*.
 
 See *Trading strategies library*.
 
+### Portfolio
+
+| Tool | What it does |
+|---|---|
+| **Read portfolios** | Reads your portfolios: the linked paper account, targets, shares held, what you paid, current value, gain or loss, how far each holding has drifted from its target, and the calculator's plan |
+
+It is **read-only**. Claude cannot create or edit a portfolio, record a purchase, or buy anything. The buttons that send paper buy and sell orders for a linked portfolio are yours alone, and what it says is education rather than personal financial advice. See *Portfolio*.
+
 ### Watchlists
 
 | Tool | What it does |

@@ -15,6 +15,8 @@ import { DRAWING_COLORS, type Drawing, type DrawingPoint, type OrderLine, type T
 
 interface Props {
   candles: Candle[]
+  /** symbol, length and interval the candles belong to: the view (zoom and scroll) survives a rebuild only within the same key */
+  dataKey: string
   intraday: boolean
   tz: string
   hour12: boolean
@@ -27,11 +29,13 @@ interface Props {
   onOrderLineMove: (id: string, price: number) => void
 }
 
-export default function Chart({ candles, intraday, tz, hour12, settings, tool, onToolChange, drawings, onDrawingsChange, orderLines, onOrderLineMove }: Props) {
+export default function Chart({ candles, dataKey, intraday, tz, hour12, settings, tool, onToolChange, drawings, onDrawingsChange, orderLines, onOrderLineMove }: Props) {
   const el = useRef<HTMLDivElement>(null)
   const live = useRef({ tool, onToolChange, drawings, onDrawingsChange, orderLines, onOrderLineMove })
   live.current = { tool, onToolChange, drawings, onDrawingsChange, orderLines, onOrderLineMove }
   const api = useRef<{ chart: IChartApi; prim: DrawingsPrimitive } | null>(null)
+  // where the user had scrolled and zoomed, kept across rebuilds (new bars arriving, a color changing)
+  const view = useRef<{ key: string; fromTime: number; width: number; offset: number; follow: boolean } | null>(null)
 
   useEffect(() => {
     const s = settings
@@ -121,7 +125,18 @@ export default function Chart({ candles, intraday, tz, hour12, settings, tool, o
 
     const panes = chart.panes()
     panes.forEach((p, i) => p.setStretchFactor(i === 0 ? 4 : 1))
-    chart.timeScale().fitContent()
+    // keep the user's zoom and scroll; follow the newest bar only if they were looking at it
+    const saved = view.current
+    if (saved && saved.key === dataKey) {
+      let to: number, from: number
+      if (saved.follow) { to = N - 1 + saved.offset; from = to - saved.width }
+      else {
+        const i = candles.findIndex((k) => k.time >= saved.fromTime)
+        from = i < 0 ? Math.max(0, N - 1 - saved.width) : i
+        to = from + saved.width
+      }
+      chart.timeScale().setVisibleLogicalRange({ from, to })
+    } else chart.timeScale().fitContent()
 
     // ---- drawing tools ----
     const prim = new DrawingsPrimitive()
@@ -268,9 +283,17 @@ export default function Chart({ candles, intraday, tz, hour12, settings, tool, o
       return out.toDataURL('image/png').split(',')[1]
     }
     chartBridge.screenshot = shot
+    const busy = () => !!(drag || lineDrag || prim.draft)
+    chartBridge.busy = busy
 
     return () => {
       if (chartBridge.screenshot === shot) chartBridge.screenshot = null
+      if (chartBridge.busy === busy) chartBridge.busy = null
+      const lr = chart.timeScale().getVisibleLogicalRange()
+      if (lr && candles.length) {
+        const n = candles.length
+        view.current = { key: dataKey, fromTime: candles[Math.min(n - 1, Math.max(0, Math.round(lr.from)))].time, width: lr.to - lr.from, offset: lr.to - (n - 1), follow: lr.to >= n - 1 - 0.5 }
+      }
       container.removeEventListener('mousedown', onDown, true)
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
@@ -278,7 +301,7 @@ export default function Chart({ candles, intraday, tz, hour12, settings, tool, o
       api.current = null
       chart.remove()
     }
-  }, [candles, settings, intraday, tz, hour12])
+  }, [candles, settings, intraday, tz, hour12, dataKey])
 
   // Push external state (drawings from the DB, tool changes) into the live chart.
   useEffect(() => {

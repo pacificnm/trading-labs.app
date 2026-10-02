@@ -2,6 +2,8 @@ A **watchlist** is a list of stocks you want to keep an eye on. It saves you fro
 
 ![The Watchlists screen](watchlists-screen.png)
 
+> Looking to plan percentages and shares, or to track what you own? That is the **Portfolio** screen. See *Portfolio*.
+
 ## Your lists
 
 The tabs along the top are your lists. Each shows its **name** and how many symbols it has. The first time you run the app you have one list called **Watchlist** holding AAPL, MSFT, NVDA, TSLA and SPY, which you can change freely.
@@ -75,4 +77,4 @@ The list you have selected on this screen becomes the **active list**, and is th
 - **Check them at the same time each day.** A routine builds the feel for how stocks normally behave.
 - **Prune regularly.** Remove stocks that no longer interest you.
 
-**Next:** *Position calculator*.
+**Next:** *Portfolio*.

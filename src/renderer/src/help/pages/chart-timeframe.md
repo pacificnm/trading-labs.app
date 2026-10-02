@@ -51,7 +51,29 @@ When you change **Length** and your current interval no longer fits, the app swi
 - **Your FMP plan.** Intraday intervals (1 Min to 4 Hour) need a paid FMP plan, and plans differ in which ones they include. The app checks this and **leaves out the intervals your plan does not include**, so the Interval list only offers ones that will load. A Length that needs an unavailable interval (for example *1 Day* when there are no intraday bars) is left out too. If the chart was on an interval your plan lacks, it switches to the closest one that works and tells you. **Settings → What your FMP plan includes** lists what you have.
 - **Weekly and monthly candles** are built by the app from daily data, so they use the same history as the Day interval.
 - **Time zone.** On intraday charts the time axis uses the zone you chose in Settings. Daily, weekly and monthly candles are dates and never shift. See *Time zone and display*.
-- **Not a streaming feed.** The chart loads when you open it or change the symbol, Length or Interval. It does not redraw tick by tick. The **Quote Details** screen shows the latest price.
+- **Not a tick-by-tick feed.** The chart refreshes itself on a timer (see *Automatic updates* below), but it does not redraw with every trade. The **Quote Details** screen shows the latest price.
+
+## Automatic updates
+
+While the **market is open**, the chart reads the newest candles by itself, so you do not have to reload it. How often depends on the interval:
+
+| Interval | Refreshes about every |
+|---|---|
+| **1 Min** | 30 seconds |
+| **5 Min** | 1 minute |
+| **15 Min** | 2 minutes |
+| **30 Min** | 3 minutes |
+| **1 Hour**, **4 Hour** | 5 minutes |
+| **Day** | 10 minutes |
+| **Week**, **Month** | 15 minutes |
+
+- The toolbar shows **Updated** with the time of the last check, in your chosen time zone. If a refresh fails it says **Update failed, retrying**, keeps the chart you have, and tries again.
+- Only the **latest candles** are fetched. A candle that was still forming is replaced, and a new candle is added at the right.
+- **Your view stays put.** Your zoom and scroll position are kept. If you were looking at the newest candle the chart follows it; if you had scrolled back in time it stays where you were.
+- It **waits while you draw** or drag a line, so a drawing is never interrupted.
+- It **pauses** when the market is closed (a few minutes after the close it makes a last check) and when the window is minimised or hidden, and catches up as soon as you come back.
+- The data itself is as fresh as your data plan allows. Some plans delay prices, and *Limits and disclaimers* explains why the app reuses recent answers. If you want the very latest right now, switch the symbol or interval and back.
+- Sample data (no market data key) does not update, because it is made up.
 
 ## Studies and the time frame
 

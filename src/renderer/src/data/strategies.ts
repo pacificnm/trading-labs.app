@@ -1,12 +1,10 @@
 import type { StrategyDoc } from '../../../shared/strategies'
 
-const FOOT = `
-
----
-*Educational material, not investment advice. No strategy wins every time, and past behaviour of a pattern does not guarantee it will repeat. Practise on paper first and size every trade with the Position Calculator.*`
-
-type Built = Omit<StrategyDoc, 'source'>
-const doc = (d: Built): StrategyDoc => ({ ...d, body: d.body.trim() + FOOT, source: 'builtin' })
+import { doc } from './strategyDoc'
+import { DAY_TRADING } from './strategiesDay'
+import { LONG_TERM } from './strategiesLong'
+import { PROCESS } from './strategiesProcess'
+import { CHART_PATTERNS } from './strategiesPatterns'
 
 export const BUILTIN_STRATEGIES: StrategyDoc[] = [
   doc({
@@ -48,12 +46,12 @@ Open a daily chart with volume. Find three long-wick candles. For each, write do
   }),
   doc({
     id: 'candlestick-patterns', title: 'Candlestick patterns', category: 'Foundations', level: 'beginner', minutes: 20,
-    summary: 'A gallery of 41 named candlestick patterns, what each one says about buyers and sellers, and real examples Claude can find on your chart.',
+    summary: 'A gallery of 66 named candlestick patterns, what each one says about buyers and sellers, and real examples Claude can find on your chart.',
     tags: ['price action', 'candlesticks', 'patterns', 'reversal'],
     chartSetup: { range: '6M', interval: '1day', type: 'candles', studies: [{ study: 'volume' }] },
     body: `
 ## How to use this page
-Pick a pattern below to see a close-up drawing, how to spot it, what it says about buyers and sellers, what confirms it and when it fails. Press **Claude, show me** and Claude scans the bars on your chart with exact rules, marks every match it finds and explains what price did afterwards.
+Pick a pattern in the gallery above to see a close-up drawing, how to spot it, what it says about buyers and sellers, what confirms it and when it fails. Press **Claude, show me** and Claude scans the bars on your chart with exact rules, marks every match it finds and explains what price did afterwards.
 
 ## Read patterns as evidence, not forecasts
 - A pattern is a **description of one to three candles**. It becomes useful only with context: the trend before it, a nearby support or resistance level, and volume.
@@ -502,7 +500,11 @@ Open Option Stats for a stock you know. Find the at-the-money call and put for t
       { q: 'An option has a delta of 0.30. Roughly what does that mean?', a: 'It behaves like about 30 shares per contract, and the market implies roughly a 30% chance of it finishing in the money.' },
       { q: 'What is the main trade-off of a covered call?', a: 'You collect premium now but give up gains above the strike, while still carrying the downside risk of owning the stock.' }
     ]
-  })
+  }),
+  ...CHART_PATTERNS,
+  ...DAY_TRADING,
+  ...LONG_TERM,
+  ...PROCESS
 ]
 
 export const builtinById = (id: string) => BUILTIN_STRATEGIES.find((s) => s.id === id)

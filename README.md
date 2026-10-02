@@ -19,21 +19,22 @@ A desktop app for **learning to trade with paper money**. It combines live-data 
 **Research screens** (Financial Modeling Prep data). The app checks which data your FMP plan includes and hides the screens, chart intervals and Claude tools it does not, instead of showing errors.
 - Quote details, analyst ratings and targets, fundamentals, news, delayed **options chains** (Cboe), market performance by sector and industry, a **stock screener**, market and symbol news, and Senate and House trade disclosures.
 - Multiple watchlists, with live prices.
+- A **Portfolio** planner: add stocks, ETFs and mutual funds, give each a target percentage of an investment amount, and a calculator says how many shares that buys (for new money, or to top a portfolio up to a total size). Record what you hold to see its current value, gain or loss, and drift from your targets. A portfolio can **follow a paper account**: its amount is the account's cash, its holdings are the account's positions, and buttons (yours alone) send paper market orders to buy the plan or to sell a percentage of the portfolio to take profits. Mutual funds cannot trade in the paper account, so they stay typed records. A **Sell** tab plans a partial sale (every holding equally, or overweight first, optionally only holdings in profit).
 
 **Learning**
-- A **strategy library** of 13 documents (candlesticks, a gallery of 41 candlestick patterns, support and resistance, risk, trend following, pullbacks, breakouts, RSI, Bollinger, MACD, opening range, earnings, options) with rules, mistakes, practice and self-check questions. One click sets your chart up for a strategy.
+- A **strategy library** of 44 documents covering foundations (candlesticks, a gallery of 66 candlestick patterns, support and resistance, risk, trade management), trends and swing trading, breakouts, **chart patterns and drawing** (trendlines and channels, flags and pennants, triangles, wedges, head and shoulders, double tops and bottoms, cup and handle, Fibonacci, ranges, with diagrams), RSI, Bollinger and MACD, **day trading** (reality check, opening range, VWAP, gaps, intraday pullbacks, failed breakouts, stocks in play, a daily routine), earnings and options, **long-term investing** (horizons, diversification, dollar-cost averaging, fundamentals and valuation, growth vs value, long-term trend, drawdowns, dividends, sector cycles) and **process and psychology** (a trading plan, discipline, measuring expectancy) with rules, mistakes, practice and self-check questions. One click sets your chart up for a strategy.
 - Progress tracking per strategy.
 
 **Claude assistant** (right-hand panel)
 - Choose the model and the effort level.
-- 46 tools: read the chart, candles, study values and swing points; add studies; draw on the chart; read the account, journal, watchlists, news, screener, options, analyst data and the strategy library; set up an order ticket; write journal entries and strategy documents; and more.
+- 47 tools: read the chart, candles, study values and swing points; add studies; draw on the chart; read the account, journal, watchlists, portfolios, news, screener, options, analyst data and the strategy library; set up an order ticket; write journal entries and strategy documents; and more.
 - **Claude can prepare an order ticket but can never send, cancel or change an order.** You review and send every trade.
 
 ![Strategy library](docs/screenshots/strategies.png)
 
 ## Help
 
-A full **Help library** is built in: 42 pages with screenshots and step-by-step instructions for every screen and feature, from first-time setup to reference material. Open it from **About → Help Contents** or press **F1**. The pages are Markdown files in `src/renderer/src/help/pages/`.
+A full **Help library** is built in: 46 pages with screenshots and step-by-step instructions for every screen and feature, from first-time setup to reference material. Open it from **About → Help Contents** or press **F1**. The pages are Markdown files in `src/renderer/src/help/pages/`.
 
 ## Requirements
 

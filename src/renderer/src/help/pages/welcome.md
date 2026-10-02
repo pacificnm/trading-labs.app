@@ -10,7 +10,7 @@ Trading Lab is a place to **learn to trade without risking money**. You get real
 | **Charts** | The chart screen, time frames, studies, colors, drawing tools |
 | **Trading** | The order ticket, order types, account, active trades, how fills work |
 | **Research screens** | Quote, analyst, fundamentals, options, news, market, congress, screener |
-| **Planning and learning** | Watchlists, position calculator, journal, strategy library |
+| **Planning and learning** | Watchlists, portfolio planner, position calculator, journal, strategy library |
 | **Claude assistant** | The chat panel, its tools, trade ideas, example prompts |
 | **Settings** and **Reference** | Keys, time zone, data and backups, updates, shortcuts, glossary, troubleshooting |
 

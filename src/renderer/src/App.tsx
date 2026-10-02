@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Group, Panel, Separator } from 'react-resizable-panels'
-import { CandlestickChart, Wallet, ArrowLeftRight, ListChecks, Settings, Sparkles, BookOpen, Newspaper, Calculator, BarChart3, Building2, GraduationCap, ScanSearch } from 'lucide-react'
+import { CandlestickChart, Wallet, ArrowLeftRight, ListChecks, Settings, Sparkles, BookOpen, Newspaper, Calculator, BarChart3, Building2, GraduationCap, ScanSearch, PieChart } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import TitleBar from './components/TitleBar'
 import StatusBar from './components/StatusBar'
@@ -44,14 +44,16 @@ import SettingsView from './views/SettingsView'
 import { usePlan } from './fmpCaps'
 import { INTERVALS, usableTimeframe } from './chart/timeframe'
 import WatchlistView from './views/WatchlistView'
+import PortfolioView from './views/PortfolioView'
 
-type ViewId = SymbolView | 'account' | 'trades' | 'watch' | 'screener' | 'strategies' | 'congress' | 'market' | 'marketnews' | 'journal' | 'calculator' | 'settings' | 'chartSettings' | 'help'
+type ViewId = SymbolView | 'account' | 'trades' | 'watch' | 'portfolio' | 'screener' | 'strategies' | 'congress' | 'market' | 'marketnews' | 'journal' | 'calculator' | 'settings' | 'chartSettings' | 'help'
 
 const RIBBON: { id: ViewId; Icon: LucideIcon; label: string }[] = [
   { id: 'chart', Icon: CandlestickChart, label: 'Charts' },
   { id: 'account', Icon: Wallet, label: 'Account' },
   { id: 'trades', Icon: ArrowLeftRight, label: 'Active Trades' },
   { id: 'watch', Icon: ListChecks, label: 'Watchlists' },
+  { id: 'portfolio', Icon: PieChart, label: 'Portfolio' },
   { id: 'market', Icon: BarChart3, label: 'Market Performance' },
   { id: 'congress', Icon: Building2, label: 'Senate & House Trades' },
   { id: 'marketnews', Icon: Newspaper, label: 'Market News' },
@@ -355,7 +357,7 @@ export default function App() {
 
         <Group orientation="horizontal" className="workbench">
           <Panel defaultSize="75%" minSize="30%">
-            {view === 'chart' && <ChartView symbol={symbol} settings={chartSettings} live={live} candles={chartData.candles} loading={chartData.loading} error={chartData.error} onReload={chartData.reload}
+            {view === 'chart' && <ChartView symbol={symbol} settings={chartSettings} live={live} candles={chartData.candles} loading={chartData.loading} error={chartData.error} onReload={chartData.reload} dataKey={chartData.loadedKey} checkedAt={chartData.checkedAt} refreshError={chartData.refreshError}
               drawings={drawingsState.drawings} onDrawingsChange={(d) => drawingsState.update(() => d)}
               onSettingsChange={updateChartSettings} onSymbolChange={setSymbol} onNavigate={setView} onOpenSettings={() => setView('settings')}
               orderLines={orderLines} onOrderLineMove={moveOrderLine} onOpenTicket={openTicket} tz={tz} hour12={display.hour12} lists={lists} activeListId={activeList?.id ?? null} onActiveListChange={chooseList} onManageWatchlist={openWatchlists} onToggleInList={toggleInList} onCreateList={(name) => createList(name, symbol)}
@@ -373,6 +375,7 @@ export default function App() {
             {view === 'market' && <MarketView live={live} onSelectSymbol={(s) => { setSymbol(s); setView('chart') }} onAskClaude={(text) => setChatPrompt({ text, n: Date.now() })} onOpenSettings={() => setView('settings')} />}
             {view === 'marketnews' && <MarketNewsView live={live} lists={lists} activeListId={activeList?.id ?? null} snap={snap} onSelectSymbol={(s) => { setSymbol(s); setView('chart') }} onOpenSettings={() => setView('settings')} />}
             {view === 'calculator' && <CalculatorView calc={calc} onCalc={updateCalc} rules={rules} onRules={updateRules} snap={snap} live={live} chartSymbol={symbol} onOpenTicket={ticketFromCalc} onAskClaude={(text) => setChatPrompt({ text, n: Date.now() })} onOpenJournal={openJournal} />}
+            {view === 'portfolio' && <PortfolioView live={live} onSelect={(s) => { setSymbol(s); setView('chart') }} onOpenSettings={() => setView('settings')} onAskClaude={(text) => setChatPrompt({ text, n: Date.now() })} />}
             {view === 'journal' && <JournalView symbol={symbol} focusId={journalFocus} onOpenChart={(s) => { setSymbol(s); setView('chart') }} onOpenTicket={ticketFromEntry} onAskClaude={(text) => setChatPrompt({ text, n: Date.now() })} />}
             {view === 'account' && <AccountView snap={snap} onReset={refreshTrading} />}
             {view === 'trades' && <TradesView snap={snap} onChanged={refreshTrading} onSelectSymbol={(s) => { setSymbol(s); setView('chart') }} />}

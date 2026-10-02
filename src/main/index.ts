@@ -14,6 +14,8 @@ import { isMarketOpen } from '../shared/nytime'
 import { createWatchlists } from './watchlists'
 import { createAccounts } from './accounts'
 import { createUpdates, githubSlug } from './updates'
+import { createPortfolio } from './portfolio'
+import { placePortfolioOrders } from './portfolioOrders'
 import { createBackup, fileSize, inspectBackup, restoreBackup } from './backup'
 
 // One data folder whatever this build is called (dev run, unpacked folder, AppImage or .deb), so the
@@ -181,6 +183,27 @@ app.whenReady().then(() => {
   ipcMain.handle('wl:delete', (_e, id: number) => wlChanged(wl.remove(id)))
   ipcMain.handle('wl:add', (_e, id: number, symbol: string) => wlChanged(wl.add(id, symbol)))
   ipcMain.handle('wl:remove', (_e, id: number, symbol: string) => wlChanged(wl.removeSymbol(id, symbol)))
+  // Portfolio: planned allocations and holdings. Bookkeeping only; nothing here places an order.
+  const portfolio = createPortfolio(db)
+  const pfChanged = <T>(v: T): T => { BrowserWindow.getAllWindows().forEach((w) => w.webContents.send('portfolio:changed')); return v }
+  ipcMain.handle('pf:list', () => portfolio.list())
+  ipcMain.handle('pf:create', (_e, name: string, amount?: number) => pfChanged(portfolio.create(name, amount)))
+  ipcMain.handle('pf:update', (_e, id: number, patch: Parameters<typeof portfolio.update>[1]) => pfChanged(portfolio.update(id, patch)))
+  ipcMain.handle('pf:remove', (_e, id: number) => pfChanged(portfolio.remove(id)))
+  ipcMain.handle('pf:addItem', (_e, pid: number, input: Parameters<typeof portfolio.addItem>[1]) => pfChanged(portfolio.addItem(pid, input)))
+  ipcMain.handle('pf:updateItem', (_e, id: number, patch: Parameters<typeof portfolio.updateItem>[1]) => pfChanged(portfolio.updateItem(id, patch)))
+  ipcMain.handle('pf:removeItem', (_e, id: number) => pfChanged(portfolio.removeItem(id)))
+  ipcMain.handle('pf:setTargets', (_e, pid: number, targets: { id: number; pct: number }[]) => pfChanged(portfolio.setTargets(pid, targets)))
+  // a linked portfolio follows one paper account: its balances and positions, read without switching to it
+  ipcMain.handle('pf:accountView', async (_e, accountId: number) => { try { return { ok: true as const, data: await engine.view(accountId) } } catch (e) { return { ok: false as const, error: (e as Error).message } } })
+  // the two buttons that send paper orders from this screen (buy the plan, sell a percentage); the guards live in portfolioOrders.ts
+  ipcMain.handle('pf:placeOrders', async (_e, pid: number, side: 'buy' | 'sell', orders: { symbol: string; qty: number }[]) => {
+    const r = await placePortfolioOrders({ portfolio: (id) => portfolio.get(id), activeAccountId: () => accounts.activeId(), place: (spec) => engine.place(spec) }, pid, side, orders)
+    broadcast(r.ok ? r.events : [])
+    return pfChanged(r)
+  })
+  ipcMain.handle('pf:recordSells', (_e, pid: number, sells: { id: number; shares: number }[]) => pfChanged(portfolio.recordSells(pid, sells)))
+  ipcMain.handle('pf:recordBuys', (_e, pid: number, buys: { id: number; shares: number; price: number }[]) => pfChanged(portfolio.recordBuys(pid, buys)))
   // options chains come from Cboe's public delayed feed (FMP has no options data)
   const optionsChain = createOptionsClient()
   ipcMain.handle('options:chain', async (_e, symbol: string, force?: boolean) => {
@@ -238,7 +261,7 @@ app.whenReady().then(() => {
   })
   // File > Back up / Restore. Dialogs live here so the renderer never handles file paths or the database file.
   const dbFile = join(app.getPath('userData'), 'trading.db')
-  const describe = (b: { accounts: number; orders: number; journal: number; watchlists: number }) => `${b.accounts} account(s), ${b.orders} order(s), ${b.journal} journal entr${b.journal === 1 ? 'y' : 'ies'}, ${b.watchlists} watchlist(s)`
+  const describe = (b: { accounts: number; orders: number; journal: number; watchlists: number; portfolios: number }) => `${b.accounts} account(s), ${b.orders} order(s), ${b.journal} journal entr${b.journal === 1 ? 'y' : 'ies'}, ${b.watchlists} watchlist(s), ${b.portfolios} portfolio(s)`
   ipcMain.handle('backup:create', async (e) => {
     const parent = win(e)
     const r = await dialog.showSaveDialog(parent, { title: 'Back up Trading Lab data', defaultPath: join(app.getPath('documents'), `trading-lab-backup-${new Date().toISOString().slice(0, 10)}.db`), filters: [{ name: 'Trading Lab backup', extensions: ['db'] }] })

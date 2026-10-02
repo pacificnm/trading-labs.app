@@ -9,7 +9,7 @@ export const SECRET_KEYS = ['fmp_key', 'anthropic_key']
 // what a file must contain to be accepted as a Trading Lab database
 const REQUIRED = ['settings', 'accounts', 'orders', 'journal_entries']
 
-export interface BackupSummary { accounts: number; orders: number; journal: number; watchlists: number; chats: number; createdAt: string; appVersion: string }
+export interface BackupSummary { accounts: number; orders: number; journal: number; watchlists: number; portfolios: number; chats: number; createdAt: string; appVersion: string }
 
 const count = (db: DatabaseSync, table: string): number => {
   try { return Number((db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n) } catch { return 0 }
@@ -33,7 +33,7 @@ export function createBackup(live: DatabaseSync, dest: string, appVersion: strin
     put.run('created_at', createdAt)
     c.exec('VACUUM')
     c.exec('PRAGMA journal_mode = DELETE')
-    summary = { accounts: count(c, 'accounts'), orders: count(c, 'orders'), journal: count(c, 'journal_entries'), watchlists: count(c, 'watchlists'), chats: count(c, 'chats'), createdAt, appVersion }
+    summary = { accounts: count(c, 'accounts'), orders: count(c, 'orders'), journal: count(c, 'journal_entries'), watchlists: count(c, 'watchlists'), portfolios: count(c, 'portfolios'), chats: count(c, 'chats'), createdAt, appVersion }
   } catch (e) {
     c.close()
     rmSync(part, { force: true })
@@ -59,7 +59,7 @@ export function inspectBackup(path: string, appVersion: string): Inspection {
     const meta = tables.has('backup_meta') ? Object.fromEntries((c.prepare('SELECT key, value FROM backup_meta').all() as { key: string; value: string }[]).map((r) => [r.key, r.value])) : {}
     const made = meta['app_version'] ?? ''
     if (made && (compareVersions(made, appVersion) ?? 0) > 0) return { ok: false, error: `This backup was made by a newer version (${made}). Update Trading Lab first (you have ${appVersion}).` }
-    return { ok: true, summary: { accounts: count(c, 'accounts'), orders: count(c, 'orders'), journal: count(c, 'journal_entries'), watchlists: count(c, 'watchlists'), chats: count(c, 'chats'), createdAt: meta['created_at'] ?? '', appVersion: made } }
+    return { ok: true, summary: { accounts: count(c, 'accounts'), orders: count(c, 'orders'), journal: count(c, 'journal_entries'), watchlists: count(c, 'watchlists'), portfolios: count(c, 'portfolios'), chats: count(c, 'chats'), createdAt: meta['created_at'] ?? '', appVersion: made } }
   } catch (e) {
     const m = e instanceof Error ? e.message : ''
     return { ok: false, error: /not a database/i.test(m) ? 'That file is not a database.' : `Could not read the file: ${m}` }

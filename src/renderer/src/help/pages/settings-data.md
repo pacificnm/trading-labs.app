@@ -19,6 +19,7 @@ Inside it, `trading.db` is a **SQLite** database. You will also see two small he
 | **Your chats** | The text of each conversation with Claude |
 | **Your watchlists** | Lists and symbols |
 | **Your learning** | Strategy progress, notes and your own strategy guides |
+| **Your portfolios** | The holdings, target percentages, shares and costs you recorded on the Portfolio screen |
 | **Your settings** | Chart settings and study colors, drawings for each symbol, time zone and clock, the model and effort you chose, and your risk limits |
 | **Your API keys** | Stored encrypted when your system keyring is available. See *API keys* |
 | **The market data cache** | Saved copies of recent market data. See below |

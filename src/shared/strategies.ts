@@ -1,5 +1,5 @@
 export type Level = 'beginner' | 'intermediate' | 'advanced'
-export const CATEGORIES = ['Foundations', 'Trend', 'Breakouts', 'Mean reversion & momentum', 'Intraday', 'Events & options', 'My strategies'] as const
+export const CATEGORIES = ['Foundations', 'Trend', 'Breakouts', 'Chart patterns', 'Mean reversion & momentum', 'Intraday', 'Events & options', 'Long-term investing', 'Process & psychology', 'My strategies'] as const
 export type Category = (typeof CATEGORIES)[number]
 export type Progress = 'new' | 'learning' | 'practiced' | 'confident'
 export const PROGRESS_LABEL: Record<Progress, string> = { new: 'Not started', learning: 'Learning', practiced: 'Practiced', confident: 'Confident' }

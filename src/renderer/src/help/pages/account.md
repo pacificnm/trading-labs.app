@@ -116,6 +116,10 @@ To keep one account's history and still try something different, create **anothe
 
 The Account screen shows totals only. To see **what you hold**, your working orders, and your trade history, go to **Active Trades**, which shows the active account. See *Active trades*. For the rules behind the numbers, see *How paper trading works*.
 
+## Portfolios that follow an account
+
+A **portfolio** (see *Portfolio*) can be linked to a paper account. It then takes its cash and its stock and ETF holdings from this account, and its **Buy these** and **Sell these in the paper account** buttons send ordinary simulated market orders to it. Resetting or deleting an account therefore changes what a linked portfolio shows: its holdings become empty, and if the account is deleted the portfolio is unlinked and keeps the numbers you had typed.
+
 ## Asking Claude
 
 Claude can read the active account's summary, including its name, brokerage and type. Ask *How is my account doing?*, *How much risk am I taking right now?* or *How big could my next position be?* and Claude will answer from that account's real balance and open positions. To ask about another account, switch to it first.

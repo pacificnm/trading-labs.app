@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { toast } from '../toast'
 import { formatDateTime, localTz, resolveTz, tzAbbr, MARKET_TZ, type DisplaySettings, type TzMode } from '../display'
 import { isMarketOpen } from '../../../shared/nytime'
-import type { KeyStatus } from '../../../shared/chat'
+import { DEFAULT_PREFS, EFFORTS, MODELS, modelInfo, normalizePrefs, type Effort, type KeyStatus } from '../../../shared/chat'
 import type { FmpTestRow } from '../../../shared/fmp'
 import { CAPS, fillGrain } from '../../../shared/fmpCaps'
 import { usePlan } from '../fmpCaps'
@@ -17,6 +17,13 @@ export default function SettingsView({ onDataKeyChange, display, onDisplayChange
   const [tests, setTests] = useState<FmpTestRow[] | null>(null)
   const [mcp, setMcp] = useState<{ ok: boolean; count?: number; transport?: string; sample?: string[]; error?: string } | null>(null)
   const [testErr, setTestErr] = useState<string | null>(null)
+  const [claude, setClaude] = useState(DEFAULT_PREFS)
+  useEffect(() => { window.api.getSetting('chatDefaults').then((p) => setClaude(normalizePrefs(p))) }, [])
+  const saveClaude = (p: { model: string; effort: Effort }) => {
+    setClaude(p)
+    window.api.setSetting('chatDefaults', p)
+    window.dispatchEvent(new CustomEvent('chat-defaults-changed', { detail: p }))
+  }
   const [cache, setCache] = useState<{ entries: number; bytes: number; oldest: number | null } | null>(null)
   const refreshCache = () => window.api.fmp.cacheStats().then(setCache)
   useEffect(() => { refreshCache() }, [])
@@ -79,6 +86,23 @@ export default function SettingsView({ onDataKeyChange, display, onDisplayChange
             Now: {formatDateTime(Date.now() / 1000, display)} · US market {isMarketOpen(Math.floor(Date.now() / 1000)) ? 'open' : 'closed'} (regular hours 09:30–16:00 New York time; holidays are not tracked).
             {resolveTz(display) !== MARKET_TZ && <><br />Intraday charts show bars in this zone. Daily, weekly and monthly bars are dates and are unaffected.</>}
           </div>
+        </section>
+        <section>
+          <h3>Claude model and effort</h3>
+          <div className="muted" style={{ marginBottom: 8 }}>
+            What the chat starts with. You are billed per use, and bigger models and higher effort cost more, so the default is the cheaper Sonnet at Medium. The pickers at the bottom of the chat panel change it for the current session only.
+          </div>
+          <label>Default model
+            <select value={claude.model} onChange={(e) => saveClaude(normalizePrefs({ model: e.target.value }))}>
+              {MODELS.map((m) => <option key={m.id} value={m.id}>{m.label} · {m.desc}</option>)}
+            </select>
+          </label>
+          <label>Default effort
+            <select value={claude.effort} disabled={!modelInfo(claude.model).reasoning} onChange={(e) => saveClaude({ ...claude, effort: e.target.value as Effort })}>
+              {EFFORTS.map((x) => <option key={x.id} value={x.id}>{x.label} · {x.desc}</option>)}
+            </select>
+          </label>
+          {!modelInfo(claude.model).reasoning && <div className="muted">This model has no effort setting.</div>}
         </section>
         <section>
           <h3>Anthropic API key (Claude chat)</h3>

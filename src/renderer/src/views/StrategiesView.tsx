@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Markdown from 'react-markdown'
+import { Children, isValidElement } from 'react'
+import ChartDiagram from '../components/ChartDiagram'
 import remarkGfm from 'remark-gfm'
 import { BookOpen, Copy, MessageSquare, Pencil, Plus, Search, Sparkles, Trash2, Wand2, Target, HelpCircle, ListChecks } from 'lucide-react'
 import { BUILTIN_STRATEGIES } from '../data/strategies'
@@ -57,6 +59,18 @@ function Editor({ initial, currentSetup, onSave, onCancel }: { initial: Strategy
       <div className="st-actions"><button className="btn primary" disabled={!f.title?.trim()} onClick={() => onSave(f)}>Save</button><button className="btn" onClick={onCancel}>Cancel</button></div>
     </div>
   )
+}
+
+// a fenced block marked chartdiagram is a schematic picture, not code
+const MD_COMPONENTS = {
+  pre: (props: { children?: React.ReactNode }) => {
+    const child = Children.toArray(props.children)[0]
+    if (isValidElement(child)) {
+      const p = child.props as { className?: string; children?: React.ReactNode }
+      if (p.className?.includes('language-chartdiagram')) return <ChartDiagram source={String(p.children ?? '')} />
+    }
+    return <pre>{props.children}</pre>
+  }
 }
 
 export default function StrategiesView({ symbol, chartSettings, onApplyChart, onAskClaude }: {
@@ -155,8 +169,8 @@ export default function StrategiesView({ symbol, chartSettings, onApplyChart, on
                 <button className="btn" onClick={plan}><ListChecks size={13} /> Practice plan</button>
                 <button className="btn" onClick={simple}><MessageSquare size={13} /> Explain simply</button>
               </div>
-              <div className="md st-body"><Markdown remarkPlugins={[remarkGfm]}>{doc.body}</Markdown></div>
               {doc.id === 'candlestick-patterns' && <CandlePatterns symbol={symbol} onAskClaude={ask} />}
+              <div className="md st-body"><Markdown remarkPlugins={[remarkGfm]} components={MD_COMPONENTS}>{doc.body}</Markdown></div>
               {doc.chartSetup && <section className="jr-sec"><h4>Chart setup</h4><SetupCard setup={doc.chartSetup} /></section>}
               {doc.quiz.length > 0 && <section className="jr-sec"><h4>Check yourself</h4><Quiz key={doc.id} quiz={doc.quiz} /></section>}
               <section className="jr-sec"><h4>My notes</h4>

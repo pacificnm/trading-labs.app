@@ -402,6 +402,231 @@ const RAW: Omit<CandlePattern, 'rarity'>[] = [
     confirm: 'Price staying below the strike candle\'s high.',
     caution: 'Rare, and traditionally considered a continuation pattern in some books. Check the trend and the level before taking it as a reversal.',
     example: [...up(44, 2), [44, 52, 42, 50], [50, 58, 48, 56], [56, 64, 54, 62], [64, 66, 40, 42]]
+  },
+  {
+    id: 'long-white-candle', name: 'Long bullish candle', bias: 'bullish', group: 'Single candle', size: 1, context: 'Any trend; most telling at the end of a decline or a breakout',
+    summary: 'A green candle with a big body, much larger than the recent average: buyers were in control all period.',
+    rules: ['Green (closes above its open).', 'The whole candle is at least 1.3 times the recent average range.', 'The body is at least 60% of the range, but not so large that it is a marubozu (no body over 90%).'],
+    story: 'Buyers pushed price up strongly and held most of the gain. It shows conviction, especially when volume is high.',
+    confirm: 'The next candle holding above the middle of the long candle, or breaking above its high.',
+    caution: 'After a long rise a very large green candle can mark exhaustion. Judge it against the trend and the nearest resistance.',
+    example: [...dn(40), [38, 66, 36, 60]]
+  },
+  {
+    id: 'long-black-candle', name: 'Long bearish candle', bias: 'bearish', group: 'Single candle', size: 1, context: 'Any trend; most telling at the end of a rise or a breakdown',
+    summary: 'A red candle with a big body, much larger than the recent average: sellers were in control all period.',
+    rules: ['Red (closes below its open).', 'The whole candle is at least 1.3 times the recent average range.', 'The body is at least 60% of the range, but not a marubozu (no body over 90%).'],
+    story: 'Sellers pushed price down hard and kept most of the move. It shows conviction, especially on high volume.',
+    confirm: 'The next candle staying below the middle of the long candle, or breaking its low.',
+    caution: 'After a long fall a huge red candle can be a final flush, not the start of more. Check the level it reaches.',
+    example: [...up(60), [62, 64, 34, 40]]
+  },
+  {
+    id: 'high-wave', name: 'High wave candle', bias: 'neutral', group: 'Single candle', size: 1, context: 'After a strong move, at a key level',
+    summary: 'A small body with long wicks on both sides and a large total range: a violent argument that settled nothing.',
+    rules: ['The range is at least 1.5 times the recent average.', 'The body is between 10% and 30% of the range.', 'Both wicks are at least 30% of the range.'],
+    story: 'Price swung far in both directions and closed near the middle. Both sides were strong and neither won, which often precedes a turn or a breakout.',
+    confirm: 'Wait for the next candle to close beyond the high or low of the high wave.',
+    caution: 'Common around news and at the open. A single high wave inside a choppy range carries little information.',
+    example: [...up(60), [57, 80, 38, 63]]
+  },
+  {
+    id: 'bullish-harami-cross', name: 'Bullish harami cross', bias: 'bullish', group: 'Two candles', size: 2, context: 'After a decline',
+    summary: 'A big red candle followed by a doji that sits entirely inside its body: the selling stops cold.',
+    rules: ['Appears after a decline.', 'First: a red candle with a large body.', 'Second: a doji (body 10% of its range or less) whose whole body is inside the first candle\'s body.'],
+    story: 'After sellers drove price down, the next period ended where it began, inside the prior body. Indecision after a strong move is a warning to the trend.',
+    confirm: 'A green candle closing above the first candle\'s open or at least above the doji\'s high.',
+    caution: 'It is a signal of hesitation, not a reversal by itself. It fails often when support is far away.',
+    example: [...dn(40), [42, 44, 14, 16], [30, 36, 24, 30.3]]
+  },
+  {
+    id: 'bearish-harami-cross', name: 'Bearish harami cross', bias: 'bearish', group: 'Two candles', size: 2, context: 'After a rise',
+    summary: 'A big green candle followed by a doji that sits entirely inside its body: the buying stalls.',
+    rules: ['Appears after a rise.', 'First: a green candle with a large body.', 'Second: a doji whose whole body is inside the first candle\'s body.'],
+    story: 'After a strong push up, buyers could not extend it and the next period closed where it opened. A pause after a surge can mean the move is tiring.',
+    confirm: 'A red candle closing below the first candle\'s open or below the doji\'s low.',
+    caution: 'Trends often resume after a harami cross. Wait for confirmation and note nearby resistance.',
+    example: [...up(60), [58, 86, 56, 84], [70, 76, 64, 70.3]]
+  },
+  {
+    id: 'on-neck', name: 'On-neck line', bias: 'bearish', group: 'Two candles', size: 2, context: 'In a downtrend',
+    summary: 'After a long red candle, price gaps lower, rallies and closes only at the prior low: a weak bounce that does not recover.',
+    rules: ['In a downtrend.', 'First: a long red candle.', 'Second: a green candle that opens below the first candle\'s low and closes at (within a tenth of an average range of) that low.'],
+    story: 'Buyers managed a bounce but could not even close back inside the prior candle. Weak buying in a falling market suggests the decline can continue.',
+    confirm: 'A close below the second candle\'s low.',
+    caution: 'A continuation pattern, so it works with the trend, not against it. If price instead closes above the first candle\'s close, the bounce is stronger than it looks.',
+    example: [...dn(40), [42, 44, 16, 18], [10, 17, 8, 16.5]]
+  },
+  {
+    id: 'in-neck', name: 'In-neck line', bias: 'bearish', group: 'Two candles', size: 2, context: 'In a downtrend',
+    summary: 'After a long red candle, price gaps lower and bounces to just above the prior close: a bounce that barely gets into the body.',
+    rules: ['In a downtrend.', 'First: a long red candle.', 'Second: a green candle that opens below the first candle\'s low and closes just above the first close (within 15% of the first body).'],
+    story: 'The bounce stopped right at the entrance to the prior candle. Sellers are defending that area.',
+    confirm: 'A close below the second candle\'s low.',
+    caution: 'It differs from the on-neck line only slightly. As with all continuation signals, a break the other way cancels it.',
+    example: [...dn(40), [42, 44, 16, 18], [10, 22, 8, 20]]
+  },
+  {
+    id: 'thrusting-line', name: 'Thrusting line', bias: 'bearish', group: 'Two candles', size: 2, context: 'In a downtrend',
+    summary: 'After a long red candle, price gaps lower and bounces well into the body, but stops short of the halfway point.',
+    rules: ['In a downtrend.', 'First: a long red candle.', 'Second: a green candle that opens below the first candle\'s low and closes inside the first body, above the close by more than 15% of the body but below the midpoint.'],
+    story: 'Buyers fought back and recovered part of the loss, but not even half. That is not enough to change the trend.',
+    confirm: 'A close below the second candle\'s low.',
+    caution: 'A close above the midpoint would make it a piercing line instead, which is bullish.',
+    example: [...dn(40), [42, 44, 16, 18], [10, 30, 8, 28]]
+  },
+  {
+    id: 'bullish-separating-lines', name: 'Bullish separating lines', bias: 'bullish', group: 'Two candles', size: 2, context: 'In an uptrend',
+    summary: 'In an uptrend, a red candle is followed by a green candle that opens at the same price and runs up: the dip is wiped out.',
+    rules: ['In an uptrend.', 'First: a red candle.', 'Second: a green candle that opens at (within a tenth of an average range of) the first candle\'s open.', 'Both have a real body.'],
+    story: 'Sellers had one period, then buyers opened at the same level and drove price up again. The pullback was rejected and the trend resumes.',
+    confirm: 'A close above the second candle\'s high.',
+    caution: 'A continuation pattern. In a sideways market it is just two opposite candles.',
+    example: [...up(60), [62, 64, 44, 46], [62, 80, 61, 78]]
+  },
+  {
+    id: 'bearish-separating-lines', name: 'Bearish separating lines', bias: 'bearish', group: 'Two candles', size: 2, context: 'In a downtrend',
+    summary: 'In a downtrend, a green candle is followed by a red candle that opens at the same price and falls: the bounce is wiped out.',
+    rules: ['In a downtrend.', 'First: a green candle.', 'Second: a red candle that opens at (within a tenth of an average range of) the first candle\'s open.', 'Both have a real body.'],
+    story: 'Buyers had one period, then sellers opened at the same level and drove price down again. The bounce was rejected and the trend resumes.',
+    confirm: 'A close below the second candle\'s low.',
+    caution: 'A continuation pattern, so check the trend first.',
+    example: [...dn(40), [38, 56, 36, 54], [38, 39, 20, 22]]
+  },
+  {
+    id: 'bullish-counterattack', name: 'Bullish counterattack line', bias: 'bullish', group: 'Two candles', size: 2, context: 'After a decline',
+    summary: 'A long red candle, then a gap down and a long green candle that closes right back at the prior close.',
+    rules: ['Appears after a decline.', 'First: a long red candle.', 'Second: a long green candle that opens well below the first close and closes at (within a tenth of an average range of) it.'],
+    story: 'Price gapped lower and panicked sellers pushed further, but buyers then drove it all the way back to the previous close. The gap down was completely rejected.',
+    confirm: 'A close above the second candle\'s close. A gap up the next day is stronger.',
+    caution: 'It only recovers to the prior close, not beyond. Weaker than a piercing line or engulfing candle.',
+    example: [...dn(40), [42, 44, 16, 18], [4, 20, 2, 18.5]]
+  },
+  {
+    id: 'bearish-counterattack', name: 'Bearish counterattack line', bias: 'bearish', group: 'Two candles', size: 2, context: 'After a rise',
+    summary: 'A long green candle, then a gap up and a long red candle that closes right back at the prior close.',
+    rules: ['Appears after a rise.', 'First: a long green candle.', 'Second: a long red candle that opens well above the first close and closes at (within a tenth of an average range of) it.'],
+    story: 'Price gapped higher with enthusiasm, but sellers drove it all the way back to the previous close. The gap up was completely rejected.',
+    confirm: 'A close below the second candle\'s close.',
+    caution: 'It only returns to the prior close, not below it. Weaker than a dark cloud cover or engulfing candle.',
+    example: [...up(60), [58, 86, 56, 84], [98, 100, 80, 83.5]]
+  },
+  {
+    id: 'homing-pigeon', name: 'Homing pigeon', bias: 'bullish', group: 'Two candles', size: 2, context: 'After a decline',
+    summary: 'A long red candle followed by a smaller red candle that stays entirely inside its body: the selling is losing force.',
+    rules: ['Appears after a decline.', 'First: a long red candle.', 'Second: a smaller red candle that opens and closes inside the first candle\'s body.'],
+    story: 'Price still fell in the second period, but with less force and without breaking the prior close. The downward momentum is fading.',
+    confirm: 'A green candle that closes above the first candle\'s open or a close above the second candle\'s high.',
+    caution: 'Falling is still falling. It is only an early hint, so wait for a green confirmation.',
+    example: [...dn(40), [44, 46, 16, 18], [36, 37, 24, 26]]
+  },
+  {
+    id: 'matching-high', name: 'Matching high', bias: 'bearish', group: 'Two candles', size: 2, context: 'After a rise, near resistance',
+    summary: 'Two green candles in an uptrend that close at the same price: buyers hit the same ceiling twice.',
+    rules: ['Appears after a rise.', 'Two green candles with real bodies.', 'Their closes are within a tenth of an average range of each other.'],
+    story: 'Price rose twice and stopped at exactly the same level, which suggests supply sitting there. It is the mirror image of the matching low.',
+    confirm: 'A red candle closing below the second candle\'s open.',
+    caution: 'Equal closes happen by chance. It matters at a known resistance level.',
+    example: [...up(60), [62, 80, 60, 78], [70, 79, 68, 78.3]]
+  },
+  {
+    id: 'morning-doji-star', name: 'Morning doji star', bias: 'bullish', group: 'Three candles', size: 3, context: 'After a decline',
+    summary: 'A morning star where the middle candle is a doji: the strongest version of the bottoming three-candle pattern.',
+    rules: ['Appears after a decline.', 'First: a long red candle.', 'Second: a doji whose body sits below the first candle\'s close.', 'Third: a green candle that closes above the middle of the first candle\'s body.'],
+    story: 'Sellers drove price down, then a period of total indecision (the doji) showed they had stopped, and buyers took control.',
+    confirm: 'Price holding above the doji\'s low in the following candles.',
+    caution: 'Still needs support nearby and ideally rising volume on the third candle.',
+    example: [...dn(40), [42, 44, 18, 20], [12, 15, 8, 12.2], [14, 36, 12, 34]]
+  },
+  {
+    id: 'evening-doji-star', name: 'Evening doji star', bias: 'bearish', group: 'Three candles', size: 3, context: 'After a rise',
+    summary: 'An evening star where the middle candle is a doji: the strongest version of the topping three-candle pattern.',
+    rules: ['Appears after a rise.', 'First: a long green candle.', 'Second: a doji whose body sits above the first candle\'s close.', 'Third: a red candle that closes below the middle of the first candle\'s body.'],
+    story: 'Buyers drove price up, then a doji showed the buying had stopped, and sellers took control.',
+    confirm: 'Price staying below the doji\'s high in the following candles.',
+    caution: 'Needs resistance nearby. In a strong trend, a pause can be followed by more of the same.',
+    example: [...up(60), [58, 84, 56, 82], [90, 94, 88, 90.2], [88, 90, 62, 64]]
+  },
+  {
+    id: 'bullish-tri-star', name: 'Bullish tri-star', bias: 'bullish', group: 'Three candles', size: 3, context: 'After a decline',
+    summary: 'Three dojis in a row, with the middle one gapping below the other two: a bottom made of indecision.',
+    rules: ['Appears after a decline.', 'Three dojis (bodies 10% of the range or less).', 'The middle doji is completely below the first and third.'],
+    story: 'Three periods without a winner, with the middle one lower than both neighbours. Selling has dried up.',
+    confirm: 'A green candle above the third doji\'s high.',
+    caution: 'Very rare, and a series of dojis often just means a dull market. Context decides.',
+    example: [...dn(40), [30, 34, 26, 30.2], [20, 23, 16, 20.2], [30, 34, 26, 29.9]]
+  },
+  {
+    id: 'bearish-tri-star', name: 'Bearish tri-star', bias: 'bearish', group: 'Three candles', size: 3, context: 'After a rise',
+    summary: 'Three dojis in a row, with the middle one gapping above the other two: a top made of indecision.',
+    rules: ['Appears after a rise.', 'Three dojis (bodies 10% of the range or less).', 'The middle doji is completely above the first and third.'],
+    story: 'Three periods without a winner, with the middle one higher than both neighbours. Buying has dried up.',
+    confirm: 'A red candle below the third doji\'s low.',
+    caution: 'Very rare, and several dojis in a row are common in quiet markets. Needs an obvious prior rise.',
+    example: [...up(60), [70, 74, 66, 70.2], [80, 84, 77, 80.2], [70, 74, 66, 69.9]]
+  },
+  {
+    id: 'two-crows', name: 'Two crows', bias: 'bearish', group: 'Three candles', size: 3, context: 'After a rise',
+    summary: 'A long green candle, then two red candles: the first gaps above it, the second opens inside and closes back inside the first body.',
+    rules: ['Appears after a rise.', 'First: a long green candle.', 'Second: a red candle that opens and closes above the first candle\'s close.', 'Third: a red candle that opens inside the second body and closes inside the first candle\'s body.'],
+    story: 'Price gapped up and was sold, then sold again, falling back into the first candle. Buyers are losing the ground they just gained.',
+    confirm: 'A close below the third candle\'s low.',
+    caution: 'Rare. The third candle only closes inside the first body, not below it, so wait for confirmation.',
+    example: [...up(60), [50, 74, 48, 72], [78, 80, 70, 74], [77, 78, 58, 62]]
+  },
+  {
+    id: 'advance-block', name: 'Advance block', bias: 'bearish', group: 'Three candles', size: 3, context: 'After a rise',
+    summary: 'Three green candles that keep rising but with shrinking bodies and growing upper wicks: the advance is running out of strength.',
+    rules: ['Appears after a rise.', 'Three green candles, each opening inside the previous body and closing higher.', 'The bodies get smaller each time.', 'The upper wicks get longer each time.'],
+    story: 'It looks like three white soldiers at first, but each candle gains less and gives back more. Sellers are taking more of each rally.',
+    confirm: 'A red candle that closes below the third candle\'s open.',
+    caution: 'Looks bullish on a quick glance. Compare the bodies and wicks, and watch for rejection near resistance.',
+    example: [...up(48), [50, 66, 48, 64], [58, 76, 56, 70], [64, 82, 62, 72]]
+  },
+  {
+    id: 'stalled-pattern', name: 'Stalled pattern (deliberation)', bias: 'bearish', group: 'Three candles', size: 3, context: 'After a rise',
+    summary: 'Two long green candles followed by a small green candle that opens near the last close: the advance hesitates.',
+    rules: ['Appears after a rise.', 'First two: long green candles, the second opening inside the first body and closing higher.', 'Third: a small green candle (body under 40% of the second) that opens at or near the second close and closes slightly higher.'],
+    story: 'Two strong pushes up, then a very small advance. The buyers are running out of enthusiasm and the rally may be pausing or ending.',
+    confirm: 'A red candle that closes below the third candle\'s low.',
+    caution: 'A small candle after strong ones is often only a pause. Treat it as a warning, not a sell signal.',
+    example: [...up(46), [48, 66, 46, 64], [60, 82, 58, 80], [80.5, 88, 79, 85]]
+  },
+  {
+    id: 'upside-tasuki-gap', name: 'Upside tasuki gap', bias: 'bullish', group: 'Three candles', size: 3, context: 'In an uptrend',
+    summary: 'Two green candles with a gap between them, then a red candle that dips into the gap but does not close it: the uptrend continues.',
+    rules: ['In an uptrend.', 'Two green candles with a gap up between them.', 'Third: a red candle that opens inside the second body and closes inside the gap, without closing it completely.'],
+    story: 'Sellers got a candle and pushed price back into the gap, but could not fill it. The gap holds, which shows buyers are still in charge.',
+    confirm: 'A close above the second candle\'s high.',
+    caution: 'If the gap is completely closed, the pattern fails and the trend may be over.',
+    example: [...up(46), [48, 66, 46, 64], [70, 86, 68, 84], [82, 83, 66.8, 68]]
+  },
+  {
+    id: 'downside-tasuki-gap', name: 'Downside tasuki gap', bias: 'bearish', group: 'Three candles', size: 3, context: 'In a downtrend',
+    summary: 'Two red candles with a gap between them, then a green candle that rises into the gap but does not close it: the downtrend continues.',
+    rules: ['In a downtrend.', 'Two red candles with a gap down between them.', 'Third: a green candle that opens inside the second body and closes inside the gap, without closing it completely.'],
+    story: 'Buyers got a candle and bounced into the gap, but could not fill it. The gap holds, which shows sellers are still in charge.',
+    confirm: 'A close below the second candle\'s low.',
+    caution: 'If the gap is completely closed, the pattern fails and the downtrend may be over.',
+    example: [...dn(40), [42, 44, 16, 18], [14, 15, 4, 6], [8, 15.5, 7, 15]]
+  },
+  {
+    id: 'bullish-breakaway', name: 'Bullish breakaway', bias: 'bullish', group: 'Four or five candles', size: 5, context: 'After a decline',
+    summary: 'A long red candle, a gap down, three more candles drifting lower, then a long green candle that closes back inside the gap.',
+    rules: ['Appears after a decline.', 'First: a long red candle.', 'Second: a red candle that opens below the first close (a gap down).', 'Third and fourth: candles that keep making lower closes.', 'Fifth: a long green candle that closes above the second candle\'s open but below the first candle\'s close.'],
+    story: 'A gap down started a final slide in small steps, and then buyers took control with one strong candle that recovered the gap. The selling was exhausted.',
+    confirm: 'A close above the fifth candle\'s high.',
+    caution: 'Very rare and slow to complete. By the time it forms the first move up may be done.',
+    example: [...dn(40), [44, 46, 20, 22], [18, 19, 10, 12], [12, 14, 6, 8], [8, 10, 2, 4], [3, 22, 2, 20]]
+  },
+  {
+    id: 'bearish-breakaway', name: 'Bearish breakaway', bias: 'bearish', group: 'Four or five candles', size: 5, context: 'After a rise',
+    summary: 'A long green candle, a gap up, three more candles drifting higher, then a long red candle that closes back inside the gap.',
+    rules: ['Appears after a rise.', 'First: a long green candle.', 'Second: a green candle that opens above the first close (a gap up).', 'Third and fourth: candles that keep making higher closes.', 'Fifth: a long red candle that closes below the second candle\'s open but above the first candle\'s close.'],
+    story: 'A gap up started a final climb in small steps, and then sellers took control with one strong candle that closed the gap. The buying was exhausted.',
+    confirm: 'A close below the fifth candle\'s low.',
+    caution: 'Very rare and slow to complete. A rising market can shrug it off, so look for resistance nearby.',
+    example: [...up(58), [56, 80, 54, 78], [82, 90, 81, 88], [88, 94, 86, 92], [92, 98, 90, 96], [97, 98, 78, 80]]
   }
 ]
 
@@ -422,7 +647,14 @@ const RARITY: Record<string, Rarity> = {
   'bearish-kicker': 'very rare', 'three-inside-up': 'rare', 'three-inside-down': 'rare',
   'three-outside-up': 'rare', 'three-outside-down': 'rare', 'bullish-abandoned-baby': 'very rare',
   'bearish-abandoned-baby': 'very rare', 'rising-three-methods': 'very rare', 'falling-three-methods': 'very rare',
-  'bullish-three-line-strike': 'very rare', 'bearish-three-line-strike': 'very rare'
+  'bullish-three-line-strike': 'very rare', 'bearish-three-line-strike': 'very rare',
+  // added later: the first group is measured on simulated paths, the rest need real overnight gaps or exact equal prices, so the tiers are reasoned
+  'long-white-candle': 'common', 'long-black-candle': 'common', 'high-wave': 'uncommon',
+  'bullish-harami-cross': 'rare', 'bearish-harami-cross': 'rare', 'advance-block': 'very rare', 'stalled-pattern': 'rare',
+  'on-neck': 'rare', 'in-neck': 'rare', 'thrusting-line': 'rare', 'homing-pigeon': 'rare', 'matching-high': 'very rare',
+  'bullish-separating-lines': 'very rare', 'bearish-separating-lines': 'very rare', 'bullish-counterattack': 'very rare', 'bearish-counterattack': 'very rare',
+  'morning-doji-star': 'very rare', 'evening-doji-star': 'very rare', 'bullish-tri-star': 'very rare', 'bearish-tri-star': 'very rare', 'two-crows': 'very rare',
+  'upside-tasuki-gap': 'very rare', 'downside-tasuki-gap': 'very rare', 'bullish-breakaway': 'very rare', 'bearish-breakaway': 'very rare'
 }
 
 export const CANDLE_PATTERNS: CandlePattern[] = RAW.map((p) => ({ ...p, rarity: RARITY[p.id] ?? 'uncommon' }))
@@ -533,6 +765,44 @@ const DETECT: Record<string, Detector> = {
     if (i < 2 || trendBefore(c, i - 2) === 'down') return false
     const t = [c[i - 2], c[i - 1], c[i]]
     return t.every((b) => red(b) && body(b) >= avg * 0.5 && b.close - b.low <= 0.3 * body(b)) && t[1].open < t[0].open && t[1].open >= t[0].close && t[2].open < t[1].open && t[2].open >= t[1].close && t[1].close < t[0].close && t[2].close < t[1].close
+  },
+  'long-white-candle': (c, i, avg) => { const s = shape(c[i]); return green(c[i]) && s.r >= avg * 1.3 && s.body >= 0.6 * s.r && s.body < 0.9 * s.r },
+  'long-black-candle': (c, i, avg) => { const s = shape(c[i]); return red(c[i]) && s.r >= avg * 1.3 && s.body >= 0.6 * s.r && s.body < 0.9 * s.r },
+  'high-wave': (c, i, avg) => { const s = shape(c[i]); return s.r >= avg * 1.5 && s.body > 0.1 * s.r && s.body <= 0.3 * s.r && s.up >= 0.3 * s.r && s.lo >= 0.3 * s.r },
+  'bullish-harami-cross': (c, i, avg) => { const p = c[i - 1], n = c[i]; return i >= 1 && trendBefore(c, i - 1) === 'down' && red(p) && body(p) >= avg * 0.6 && range(n) > 0 && body(n) <= 0.1 * range(n) && top(n) <= p.open && bot(n) >= p.close },
+  'bearish-harami-cross': (c, i, avg) => { const p = c[i - 1], n = c[i]; return i >= 1 && trendBefore(c, i - 1) === 'up' && green(p) && body(p) >= avg * 0.6 && range(n) > 0 && body(n) <= 0.1 * range(n) && top(n) <= p.close && bot(n) >= p.open },
+  'on-neck': (c, i, avg) => { const p = c[i - 1], n = c[i]; return i >= 1 && trendBefore(c, i - 1) === 'down' && red(p) && body(p) >= avg * 0.6 && green(n) && n.open < p.low && n.close <= p.close && Math.abs(n.close - p.low) <= 0.1 * avg },
+  'in-neck': (c, i, avg) => { const p = c[i - 1], n = c[i]; return i >= 1 && trendBefore(c, i - 1) === 'down' && red(p) && body(p) >= avg * 0.6 && green(n) && n.open < p.low && n.close > p.close && n.close <= p.close + 0.15 * body(p) },
+  'thrusting-line': (c, i, avg) => { const p = c[i - 1], n = c[i]; return i >= 1 && trendBefore(c, i - 1) === 'down' && red(p) && body(p) >= avg * 0.6 && green(n) && n.open < p.low && n.close > p.close + 0.15 * body(p) && n.close < (p.open + p.close) / 2 },
+  'bullish-separating-lines': (c, i, avg) => { const p = c[i - 1], n = c[i]; return i >= 1 && trendBefore(c, i - 1) === 'up' && red(p) && green(n) && body(p) >= 0.5 * avg && body(n) >= 0.5 * avg && Math.abs(n.open - p.open) <= 0.1 * avg },
+  'bearish-separating-lines': (c, i, avg) => { const p = c[i - 1], n = c[i]; return i >= 1 && trendBefore(c, i - 1) === 'down' && green(p) && red(n) && body(p) >= 0.5 * avg && body(n) >= 0.5 * avg && Math.abs(n.open - p.open) <= 0.1 * avg },
+  'bullish-counterattack': (c, i, avg) => { const p = c[i - 1], n = c[i]; return i >= 1 && trendBefore(c, i - 1) === 'down' && red(p) && green(n) && body(p) >= 0.6 * avg && body(n) >= 0.6 * avg && n.open < p.close - 0.3 * avg && Math.abs(n.close - p.close) <= 0.1 * avg },
+  'bearish-counterattack': (c, i, avg) => { const p = c[i - 1], n = c[i]; return i >= 1 && trendBefore(c, i - 1) === 'up' && green(p) && red(n) && body(p) >= 0.6 * avg && body(n) >= 0.6 * avg && n.open > p.close + 0.3 * avg && Math.abs(n.close - p.close) <= 0.1 * avg },
+  'homing-pigeon': (c, i, avg) => { const p = c[i - 1], n = c[i]; return i >= 1 && trendBefore(c, i - 1) === 'down' && red(p) && red(n) && body(p) >= 0.6 * avg && body(n) < body(p) && n.open < p.open && n.close > p.close },
+  'matching-high': (c, i, avg) => { const p = c[i - 1], n = c[i]; return i >= 1 && trendBefore(c, i - 1) === 'up' && green(p) && green(n) && body(p) >= 0.3 * avg && body(n) >= 0.3 * avg && Math.abs(p.close - n.close) <= 0.1 * avg },
+  'morning-doji-star': (c, i, avg) => { const a = c[i - 2], b = c[i - 1], d = c[i]; return i >= 2 && trendBefore(c, i - 2) === 'down' && red(a) && body(a) >= avg * 0.5 && range(b) > 0 && body(b) <= 0.1 * range(b) && top(b) < a.close && green(d) && d.close > (a.open + a.close) / 2 },
+  'evening-doji-star': (c, i, avg) => { const a = c[i - 2], b = c[i - 1], d = c[i]; return i >= 2 && trendBefore(c, i - 2) === 'up' && green(a) && body(a) >= avg * 0.5 && range(b) > 0 && body(b) <= 0.1 * range(b) && bot(b) > a.close && red(d) && d.close < (a.open + a.close) / 2 },
+  'bullish-tri-star': (c, i, avg) => { const a = c[i - 2], b = c[i - 1], d = c[i]; const doji = (x: Bar) => range(x) >= 0.4 * avg && body(x) <= 0.1 * range(x); return i >= 2 && trendBefore(c, i - 2) === 'down' && doji(a) && doji(b) && doji(d) && b.high < a.low && b.high < d.low },
+  'bearish-tri-star': (c, i, avg) => { const a = c[i - 2], b = c[i - 1], d = c[i]; const doji = (x: Bar) => range(x) >= 0.4 * avg && body(x) <= 0.1 * range(x); return i >= 2 && trendBefore(c, i - 2) === 'up' && doji(a) && doji(b) && doji(d) && b.low > a.high && b.low > d.high },
+  'two-crows': (c, i, avg) => { const a = c[i - 2], b = c[i - 1], d = c[i]; return i >= 2 && trendBefore(c, i - 2) === 'up' && green(a) && body(a) >= 0.6 * avg && red(b) && b.open > a.close && b.close > a.close && red(d) && d.open < b.open && d.open > b.close && d.close < a.close && d.close > a.open },
+  'advance-block': (c, i, avg) => {
+    if (i < 2 || trendBefore(c, i - 2) !== 'up') return false
+    const [a, b, d] = [c[i - 2], c[i - 1], c[i]]
+    const upw = (x: Bar) => x.high - x.close
+    return [a, b, d].every((x) => green(x) && body(x) >= 0.3 * avg) && b.open > a.open && b.open <= a.close && d.open > b.open && d.open <= b.close && b.close > a.close && d.close > b.close && body(b) < body(a) && body(d) < body(b) && upw(b) > upw(a) && upw(d) > upw(b)
+  },
+  'stalled-pattern': (c, i, avg) => { const a = c[i - 2], b = c[i - 1], d = c[i]; return i >= 2 && trendBefore(c, i - 2) === 'up' && green(a) && green(b) && green(d) && body(a) >= 0.6 * avg && body(b) >= 0.6 * avg && b.open > a.open && b.open <= a.close && b.close > a.close && body(d) <= 0.4 * body(b) && d.open >= b.close - 0.1 * avg && d.close > b.close },
+  'upside-tasuki-gap': (c, i, avg) => { const a = c[i - 2], b = c[i - 1], d = c[i]; return i >= 2 && trendBefore(c, i - 2) === 'up' && green(a) && green(b) && body(a) >= 0.5 * avg && body(b) >= 0.5 * avg && b.low > a.high && red(d) && d.open < b.close && d.open > b.open && d.close < b.open && d.close > a.high },
+  'downside-tasuki-gap': (c, i, avg) => { const a = c[i - 2], b = c[i - 1], d = c[i]; return i >= 2 && trendBefore(c, i - 2) === 'down' && red(a) && red(b) && body(a) >= 0.5 * avg && body(b) >= 0.5 * avg && b.high < a.low && green(d) && d.open > b.close && d.open < b.open && d.close > b.open && d.close < a.low },
+  'bullish-breakaway': (c, i, avg) => {
+    if (i < 4 || trendBefore(c, i - 4) !== 'down') return false
+    const [a, b, m, n, e] = [c[i - 4], c[i - 3], c[i - 2], c[i - 1], c[i]]
+    return red(a) && body(a) >= 0.6 * avg && red(b) && b.open < a.close && m.close < b.close && n.close < m.close && green(e) && body(e) >= 0.6 * avg && e.close > b.open && e.close < a.close
+  },
+  'bearish-breakaway': (c, i, avg) => {
+    if (i < 4 || trendBefore(c, i - 4) !== 'up') return false
+    const [a, b, m, n, e] = [c[i - 4], c[i - 3], c[i - 2], c[i - 1], c[i]]
+    return green(a) && body(a) >= 0.6 * avg && green(b) && b.open > a.close && m.close > b.close && n.close > m.close && red(e) && body(e) >= 0.6 * avg && e.close < b.open && e.close > a.close
   }
 }
 

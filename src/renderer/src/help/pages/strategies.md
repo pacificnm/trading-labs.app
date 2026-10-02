@@ -10,10 +10,10 @@ The panel on the left holds every strategy.
 
 ![The strategy list with progress dots](strategies-list.png)
 
-- At the top, a counter shows how many strategies you have marked **practiced or confident**, with a progress bar. In the screenshot it reads *2 of 14*.
+- At the top, a counter shows how many strategies you have marked **practiced or confident**, with a progress bar. It counts every guide, built-in or your own.
 - **Search strategies…** looks in titles, summaries, tags and categories.
 - The level chips filter by **All levels**, **beginner**, **intermediate** or **advanced**.
-- Strategies are grouped by **category**: Foundations, Trend, Breakouts, Mean reversion & momentum, Intraday, Events & options, and **My strategies** for ones you or Claude add.
+- Strategies are grouped by **category**: Foundations, Trend, Breakouts, Chart patterns, Mean reversion & momentum, Intraday (the day-trading guides), Events & options, Long-term investing, Process & psychology, and **My strategies** for ones you or Claude add.
 - Each row shows a **progress dot**, the title, the level and the reading time. A **sparkle** marks a strategy written by Claude and a **pencil** marks one of your own.
 
 | Dot color | Your progress |
@@ -31,17 +31,56 @@ The panel on the left holds every strategy.
 | **Candlestick patterns** | Foundations | Beginner | 6 months, daily, volume |
 | **Support and resistance** | Foundations | Beginner | 6 months, daily, volume |
 | **Risk first: sizing, stops and R** | Foundations | Beginner | 3 months, daily, ATR and volume |
-| **Trend following with moving averages** | Trend | Beginner | 5 years, daily, two moving averages and volume |
-| **Buying the pullback in an uptrend** | Trend | Intermediate | 6 months, daily, EMA 20 and 50, RSI, volume |
+| **Managing a trade: scaling, trailing and adding** | Foundations | Intermediate | 6 months, daily, ATR, EMA and volume |
+| **Trend following with moving averages** | Trend | Beginner | 5 years, daily, moving average and volume |
+| **Buying the pullback in an uptrend** | Trend | Intermediate | 6 months, daily, EMA, RSI and volume |
+| **Swing trading: holding days to weeks** | Trend | Intermediate | 6 months, daily, EMA, ATR and volume |
 | **Breakouts with volume confirmation** | Breakouts | Intermediate | 6 months, daily, Donchian channels and volume |
-| **RSI mean reversion (with a trend filter)** | Mean reversion & momentum | Intermediate | 1 year, daily, RSI, a moving average and volume |
+| **Chart patterns: how to read and trade them** | Chart patterns | Beginner | 1 year, daily, volume |
+| **Drawing trendlines and channels** | Chart patterns | Beginner | 6 months, daily, volume |
+| **Flags and pennants** | Chart patterns | Intermediate | 6 months, daily, volume |
+| **Triangles: ascending, descending and symmetrical** | Chart patterns | Intermediate | 6 months, daily, volume |
+| **Rising and falling wedges** | Chart patterns | Intermediate | 6 months, daily, volume |
+| **Head and shoulders (and the inverse)** | Chart patterns | Intermediate | 1 year, daily, volume |
+| **Double tops and double bottoms** | Chart patterns | Intermediate | 1 year, daily, volume |
+| **Cup and handle** | Chart patterns | Intermediate | 1 year, daily, volume |
+| **Fibonacci retracements** | Chart patterns | Intermediate | 6 months, daily, volume |
+| **Ranges, rectangles and box breakouts** | Chart patterns | Beginner | 6 months, daily, volume |
+| **RSI mean reversion (with a trend filter)** | Mean reversion & momentum | Intermediate | 1 year, daily, RSI, moving average and volume |
 | **Bollinger Bands: squeezes and reversion** | Mean reversion & momentum | Intermediate | 6 months, daily, Bollinger Bands and volume |
-| **MACD momentum signals** | Mean reversion & momentum | Intermediate | 6 months, daily, MACD, a moving average and volume |
+| **MACD momentum signals** | Mean reversion & momentum | Intermediate | 6 months, daily, MACD, moving average and volume |
 | **Opening range breakout (intraday)** | Intraday | Advanced | 1 day, 5-minute, VWAP and volume |
+| **Day trading: what it really takes** | Intraday | Beginner | 1 day, 5-minute, VWAP and volume |
+| **VWAP: trend days and reversion** | Intraday | Intermediate | 1 day, 5-minute, VWAP and volume |
+| **Trading gaps** | Intraday | Intermediate | 5 days, 5-minute, VWAP and volume |
+| **Intraday trend pullbacks (EMA and VWAP)** | Intraday | Intermediate | 1 day, 5-minute, EMA, VWAP and volume |
+| **Choosing stocks in play: relative volume and catalysts** | Intraday | Beginner | 1 month, daily, ATR and volume |
+| **Failed breakouts and range fades** | Intraday | Advanced | 5 days, 15-minute, VWAP and volume |
+| **A day-trading routine and daily loss limits** | Intraday | Intermediate | 1 day, 5-minute, VWAP and volume |
 | **Trading around earnings** | Events & options | Intermediate | 6 months, daily, volume |
 | **Options basics (learning only)** | Events & options | Advanced | none |
+| **Investing vs trading: pick your time horizon** | Long-term investing | Beginner | 5 years, weekly, moving average |
+| **Diversification and asset allocation** | Long-term investing | Beginner | none |
+| **Dollar-cost averaging and rebalancing** | Long-term investing | Beginner | 5 years, weekly |
+| **Reading fundamentals and valuation** | Long-term investing | Intermediate | 5 years, weekly, moving average |
+| **Growth investing and value investing** | Long-term investing | Intermediate | 5 years, weekly, moving average |
+| **Long-term trend: weekly charts and the 200-day average** | Long-term investing | Intermediate | 5 years, weekly, moving average |
+| **Drawdowns, bear markets and staying invested** | Long-term investing | Beginner | 5 years, weekly |
+| **Dividends and total return** | Long-term investing | Intermediate | 5 years, weekly, moving average |
+| **Sectors, market cycles and relative strength** | Long-term investing | Intermediate | 1 year, weekly, moving average |
+| **Writing your trading plan** | Process & psychology | Beginner | none |
+| **Trading psychology: fear, greed and discipline** | Process & psychology | Beginner | none |
+| **Measuring your results: win rate, expectancy and review** | Process & psychology | Intermediate | none |
 
-A good order for a beginner is the first three **Foundations** guides, then *Trend following*, then the rest as they interest you.
+### Suggested paths
+
+- **Brand new:** *Reading candlesticks*, *Support and resistance*, *Risk first*, then *Writing your trading plan* and *Trading psychology*.
+- **Long-term investor:** *Investing vs trading*, *Diversification and asset allocation*, *Dollar-cost averaging and rebalancing*, *Drawdowns, bear markets and staying invested*, then *Reading fundamentals and valuation*.
+- **Swing trader:** *Trend following*, *Buying the pullback*, *Swing trading*, *Managing a trade*, and *Measuring your results*.
+- **Chart reader:** *Chart patterns: how to read and trade them*, *Drawing trendlines and channels*, then *Flags and pennants*, *Triangles*, *Rising and falling wedges*, *Head and shoulders*, *Double tops and bottoms*, *Cup and handle*, *Fibonacci retracements* and *Ranges, rectangles and box breakouts*.
+- **Day trader:** *Day trading: what it really takes* first, then *Choosing stocks in play*, *Opening range breakout*, *VWAP*, *Intraday trend pullbacks*, and *A day-trading routine and daily loss limits*. Do not skip the routine guide.
+
+The guides are lessons, not forecasts or advice. Only practise on paper until your journal shows a method that works after costs.
 
 ## A strategy document
 
@@ -54,9 +93,13 @@ Click a strategy to read it.
 - **Check yourself** has a few questions. Click **Show answer** under each to reveal it. Try answering first.
 - **My notes** is a box for what clicked, what confused you, and examples you found. It saves **automatically**.
 
+## Diagrams in the chart-pattern guides
+
+The **Chart patterns** guides include small **schematic pictures**: a simplified price path with the lines you would draw (a neckline, a flag's edges, a target) and labels. They are drawings of the idea, not real prices. Use the chart's **drawing tools** to draw the same lines on a real chart. You can ask Claude to draw a pattern it finds, and check where it put the points.
+
 ## Candlestick patterns
 
-This guide (under *Reading candlesticks*) holds a gallery of 41 patterns, grouped by how many candles they use. Use the **All patterns / bullish / bearish / neutral** chips to filter. Click a thumbnail for a close-up drawing (the pattern is highlighted and numbered, earlier candles are dimmed), how to spot it, what it says about buyers and sellers, what confirms it and when it fails.
+This guide (under *Reading candlesticks*) holds a gallery of **66 patterns**, at the top of the page above the lesson text, grouped by how many candles they use: single candles (the doji family, hammers, marubozu and long candles), two candles (engulfing, harami, piercing, tweezers, the "neck" lines and more), three candles (stars, soldiers and crows, inside and outside, gaps) and four or five. Use the **search box** to find one by name (for example *doji*), and the **All patterns / bullish / bearish / neutral** chips to filter. Click a thumbnail for a close-up drawing (the pattern is highlighted and numbered, earlier candles are dimmed), how to spot it, what it says about buyers and sellers, what confirms it and when it fails.
 
 Each pattern carries a **rarity** tag (common, uncommon, rare, very rare), a rough guide to how often it appears. The tags come mostly from running the pattern rules over simulated daily prices, with a judgement call for patterns that depend on gaps, so treat them as a starting point and use the real counts below. **Measure how often on <symbol>** counts every pattern in the last 5 years of daily bars and shows the real numbers on each thumbnail and in the detail page. This needs market data (an FMP key).
 

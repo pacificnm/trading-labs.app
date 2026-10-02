@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, BookOpen, Ruler, Target } from 'lucide-react'
+import { ArrowLeft, BookOpen, Ruler, Search, Target } from 'lucide-react'
 import PatternChart from './PatternChart'
 import { CANDLE_PATTERNS, RARITY_NOTE, findPattern, type Bias, type CandlePattern } from '../../../shared/candlePatterns'
 import { loadCandles } from '../data/fmp'
@@ -43,6 +43,7 @@ export default function CandlePatterns({ symbol, onAskClaude }: { symbol: string
   const [sel, setSel] = useState<string | null>(null)
   const [measured, setMeasured] = useState<Measured | null>(null)
   const [busy, setBusy] = useState(false)
+  const [q, setQ] = useState('')
   const top = useRef<HTMLDivElement>(null)
   useEffect(() => { if (sel) top.current?.scrollIntoView({ block: 'start' }) }, [sel])
   const measure = async () => {
@@ -53,14 +54,17 @@ export default function CandlePatterns({ symbol, onAskClaude }: { symbol: string
     } catch (e) { toast.error(`Could not load ${symbol} prices: ${(e as Error).message}`) }
     setBusy(false)
   }
+  const term = q.trim().toLowerCase()
   const cur = CANDLE_PATTERNS.find((p) => p.id === sel)
   if (cur) return <div ref={top}><Detail p={cur} symbol={symbol} measured={measured} onBack={() => setSel(null)} onAskClaude={onAskClaude} /></div>
   return (
     <div className="pat-gallery">
       <div className="jr-filters pat-filters">{BIASES.map((b) => <button key={b} className={'tk-chip' + (bias === b ? ' on' : '')} onClick={() => setBias(b)}>{b === 'all' ? 'All patterns' : b}</button>)}
+        <label className="pat-search"><Search size={12} /><input className="search" placeholder={`Search ${CANDLE_PATTERNS.length} patterns…`} value={q} onChange={(e) => setQ(e.target.value)} /></label>
         <span className="spacer" /><button className="btn small" disabled={busy} onClick={measure} title="Counts every pattern in the last 5 years of daily bars for this symbol"><Ruler size={12} /> {busy ? 'Measuring…' : measured && measured.symbol === symbol ? `Re-measure ${symbol}` : `Measure how often on ${symbol}`}</button></div>
+      {term && !CANDLE_PATTERNS.some((p) => (bias === 'all' || p.bias === bias) && `${p.name} ${p.summary} ${p.context}`.toLowerCase().includes(term)) && <p className="muted" style={{ padding: '8px 0' }}>No pattern matches “{q}”.</p>}
       {GROUPS.map((g) => {
-        const items = CANDLE_PATTERNS.filter((p) => p.group === g && (bias === 'all' || p.bias === bias))
+        const items = CANDLE_PATTERNS.filter((p) => p.group === g && (bias === 'all' || p.bias === bias) && (!term || `${p.name} ${p.summary} ${p.context}`.toLowerCase().includes(term)))
         if (!items.length) return null
         return (
           <section key={g} className="jr-sec"><h4>{g}</h4>

@@ -4,6 +4,14 @@ Trading Lab uses two **API keys**: one for **market data** and one for the **Cla
 
 > This picture was taken against a stand-in data feed, so the keys show as coming from environment variables and a few feeds show a red cross. On your own computer, a saved key looks different (see below), and the crosses you see depend on your data plan.
 
+## Claude model and effort
+
+Below the time zone setting, **Claude model and effort** chooses what the chat **starts with**: the *Default model* and the *Default effort*. Claude is billed to your Anthropic account by usage, and bigger models and higher effort cost more, so the default is **Claude Sonnet 5.5 at Medium**. Change it here if you want something cheaper or more thorough. The change applies at once, including to the chat that is open.
+
+![The Claude model and effort setting](settings-claude-default.png)
+
+The pickers under the chat box override it for the current session only, and are reset to this default when you restart the app. Haiku has no effort setting, so the effort choice is greyed out for it.
+
 ## The two keys
 
 | Key | From | Used for |

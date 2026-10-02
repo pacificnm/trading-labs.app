@@ -35,6 +35,8 @@ Margin accounts allow **2:1 margin**, which makes gains and losses larger (cash 
 ## Market data limits
 
 - **Delays and gaps.** Data comes from third parties. Prices can be delayed, wrong, or missing, and your plan may limit what you can see. Options data is about **15 minutes delayed**.
+- **Portfolio is a planner, not a broker.** It does arithmetic on prices and keeps your records. It never trades real money. Linked to a paper account, its two buttons (buy the plan, sell a percentage) send simulated orders only when you click and confirm. It ignores fees, dividends and splits unless you enter them, and uses prices that may be delayed. Mutual funds are priced once a day and cannot be traded in the paper account.
+- **The chart updates on a timer, not tick by tick.** See *Length and interval* for how often.
 - **Saved copies.** To limit requests, the app reuses recent answers. The *Data as of* time shows how old a figure is. See *Data, cache and backups*.
 - **Sample data.** Without a market data key, the app shows **made-up sample prices**. They are for finding your way around only, and the app labels them clearly.
 - **Free options feed.** Options come from a public delayed feed that is not an official product, and it may change or become unavailable.

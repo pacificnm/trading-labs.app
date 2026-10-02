@@ -22,6 +22,7 @@ import { activity, atmIv, contractsFor, expectedMove, maxPain, straddle, strikeR
 import { DEFAULT_CALC, fetchAtr, fetchLast, toInput, type CalcState } from './calcState'
 import { calculate, DEFAULT_RULES, type Rules } from '../../../shared/position'
 import { findPattern, patternById } from '../../../shared/candlePatterns'
+import { effectivePortfolio, planPortfolio, summarizeHoldings, type AccountLink } from '../../../shared/portfolio'
 import { getDisplay, resolveTz, tzAbbr } from '../display'
 
 export interface ToolReply { ok: boolean; text: string; image?: string }
@@ -396,6 +397,42 @@ const handlers: Record<string, (i: Input) => Promise<ToolReply>> = {
     const doomed = s.drawings.filter((d) => ids.includes(d.id) || (i.scope === 'claude' && d.by === 'claude') || i.scope === 'all')
     bridge().updateDrawings((list) => list.filter((d) => !doomed.some((x) => x.id === d.id)))
     return { ok: true, text: `Removed ${doomed.length} drawing${doomed.length === 1 ? '' : 's'}.` }
+  },
+
+  async get_portfolio(i) {
+    const all = await window.api.portfolio.list()
+    if (all.length === 0) return { ok: true, text: 'The user has no portfolios yet. They can create one from the Portfolio icon in the left ribbon.' }
+    const wanted = typeof i.name === 'string' && i.name.trim() ? all.filter((p) => p.name.toLowerCase() === String(i.name).trim().toLowerCase()) : all
+    if (wanted.length === 0) fail(`No portfolio called "${String(i.name)}". They have: ${all.map((p) => p.name).join(', ')}.`)
+    const symbols = [...new Set(wanted.flatMap((p) => p.items.map((x) => x.symbol)))]
+    const prices: Record<string, number> = {}
+    let note: string | undefined
+    if (symbols.length && !bridge().snapshot().sample) {
+      const r = await window.api.fmp.quotes(symbols)
+      if (r.ok) for (const q of r.data) { const s = String(q['symbol'] ?? ''), v = Number(q['price']); if (s && Number.isFinite(v) && v > 0) prices[s] = v }
+      else note = `Live prices could not be loaded: ${r.error}`
+    } else if (symbols.length) note = 'No market-data key is configured, so only prices the user typed by hand are available.'
+    // a linked portfolio takes its balance and holdings from its paper account, the same way the screen does
+    const links: Record<number, AccountLink | null> = {}
+    for (const p of wanted) if (p.accountId != null) { const r = await window.api.portfolio.accountView(p.accountId); links[p.id] = r.ok ? r.data : null }
+    const out = wanted.map((src) => {
+      const e = effectivePortfolio(src, links[src.id] ?? null, prices), p = e.pf
+      const linkedName = src.accountId != null && links[src.id] ? links[src.id]!.name : null
+      const plan = planPortfolio(p, prices), h = summarizeHoldings(p.items, prices)
+      return {
+        name: p.name, linkedPaperAccount: linkedName ?? undefined,
+        investmentAmount: p.amount, amountMeans: linkedName ? `the paper account's available cash (${e.availableCash}) plus what the portfolio holds; holdings are that account's positions, and mutual funds keep the shares the user typed` : p.mode === 'new' ? 'new money to invest now' : 'the total size the portfolio should reach (holdings count toward it)',
+        fractionalSharesAllowed: p.fractional, targetsAddUpTo: plan.pctTotal,
+        holdings: p.items.map((it, k) => ({
+          symbol: it.symbol, name: it.name || undefined, type: it.kind === 'fund' ? 'mutual fund' : it.kind, targetPct: it.targetPct, sharesHeld: it.shares, totalPaid: it.cost,
+          price: h.rows[k].price, value: h.rows[k].value, gain: h.rows[k].gain, gainPct: h.rows[k].gainPct, actualWeightPct: h.rows[k].weight, driftPoints: h.rows[k].drift,
+          planBuyShares: plan.rows[k].shares, planCost: plan.rows[k].cost
+        })),
+        totals: { value: h.totalValue, totalPaid: h.totalCost, gain: h.gain, gainPct: h.gainPct, planSpend: plan.spent, planLeftover: plan.leftover },
+        missingPrices: plan.missingPrice
+      }
+    })
+    return { ok: true, text: JSON.stringify({ portfolios: out, note, reminder: 'Planning and records only. Nothing here places an order, and the paper account is separate.' }, null, 1) }
   },
 
   async get_account() {

@@ -41,4 +41,4 @@ export interface ChartBridge {
 }
 
 /** Lets tools (called by Claude) reach the live chart state that React owns. */
-export const chartBridge: { impl: ChartBridge | null; screenshot: (() => string | null) | null } = { impl: null, screenshot: null }
+export const chartBridge: { impl: ChartBridge | null; screenshot: (() => string | null) | null; /** true while the user is drawing or dragging, so a data refresh waits */ busy: (() => boolean) | null } = { impl: null, screenshot: null, busy: null }

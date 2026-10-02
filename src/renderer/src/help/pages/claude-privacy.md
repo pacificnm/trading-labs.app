@@ -26,6 +26,7 @@ Under each finished answer, a small grey line shows **which model answered and h
 
 ### Keeping the cost down
 
+- **Set a cheap default.** **File → Settings → Claude model and effort** sets what the chat starts with. It is Sonnet at Medium unless you change it, and the pickers in the chat only override it for one session.
 - **Match the model to the question.** Use *Haiku* or *Sonnet* for definitions and simple questions, and keep *Opus* or *Fable* for hard analysis.
 - **Match the effort.** *Low* or *Medium* is plenty for most questions. Save *High* and above for reading a chart carefully or checking a trade plan.
 - **Start a new chat** when you change subject, so old messages are not sent again.

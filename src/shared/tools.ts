@@ -353,7 +353,7 @@ export const TOOLS: ToolDef[] = [
       type: 'object',
       properties: {
         title: { type: 'string' }, summary: { type: 'string', description: 'One sentence.' }, body: { type: 'string', description: 'Markdown document.' },
-        category: { type: 'string', enum: ['Foundations', 'Trend', 'Breakouts', 'Mean reversion & momentum', 'Intraday', 'Events & options', 'My strategies'] },
+        category: { type: 'string', enum: ['Foundations', 'Trend', 'Breakouts', 'Chart patterns', 'Mean reversion & momentum', 'Intraday', 'Events & options', 'Long-term investing', 'Process & psychology', 'My strategies'] },
         level: { type: 'string', enum: ['beginner', 'intermediate', 'advanced'] }, minutes: { type: 'integer' }, tags: { type: 'array', items: { type: 'string' } },
         quiz: { type: 'array', items: { type: 'object', properties: { q: { type: 'string' }, a: { type: 'string' } }, required: ['q', 'a'] } },
         chart_setup: { type: 'object', description: 'Timeframe and studies for the chart.', properties: { range: { type: 'string', enum: ['1D', '5D', '1M', '3M', '6M', 'YTD', '1Y', '5Y', 'MAX'] }, interval: { type: 'string', enum: ['1min', '5min', '15min', '30min', '1hour', '4hour', '1day', '1week', '1month'] }, studies: { type: 'array', items: { type: 'object', properties: { study: { type: 'string' }, params: { type: 'object' } }, required: ['study'] } } }, required: ['range', 'interval', 'studies'] }
@@ -439,6 +439,12 @@ export const TOOLS: ToolDef[] = [
     label: 'Fill in the calculator',
     description: 'Opens the Position Calculator screen and fills in the inputs (same arguments as calculate_position_size, without rule overrides) so the user can see the numbers, change them and open a ticket from them. Their saved limits are never changed. Use it when the user wants to look at or tweak a sizing you worked out.',
     input_schema: { type: 'object', properties: calcInputs }
+  },
+  {
+    name: 'get_portfolio',
+    label: 'Read portfolios',
+    description: 'Returns the user\'s saved portfolios from the Portfolio screen. These are planning and record-keeping tools, not trading accounts and not the paper account. For each portfolio: the investment amount and mode, and every holding with its type (stock, ETF, mutual fund), target percentage, shares held, total paid, current price and value, gain or loss, actual weight against its target, and the calculator\'s plan (shares to buy for the amount). Read-only: you cannot change a portfolio, record a purchase or buy anything. Use it when the user asks about allocation, diversification, rebalancing or how a portfolio is doing. A price the data feed could not supply comes back as null.',
+    input_schema: { type: 'object', properties: { name: { type: 'string', description: 'Portfolio name. Omit to read all of them.' } } }
   },
   {
     name: 'list_watchlists',

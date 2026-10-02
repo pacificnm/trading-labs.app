@@ -84,6 +84,18 @@ export function createEngine(db: DatabaseSync, market: Market, clock: () => numb
     return { account: account_, positions: v.positions, orders: [...orders, ...recent], fills, at: clock(), fillBars: g ? { label: g.label, seconds: g.seconds } : null }
   }
 
+  /** One account's balances and positions, for screens that follow an account without being on it (the Portfolio screen). */
+  async function view(accountId: number) {
+    const acc = account(accountId)
+    const v = await values(accountId)
+    const pend = all<{ symbol: string; qty: number }>(`SELECT symbol, SUM(qty) AS qty FROM orders WHERE account_id = ? AND status IN ('pending','working') AND side = 'buy' AND type = 'market' AND role = 'single' GROUP BY symbol`, accountId)
+    const sells = all<{ symbol: string; qty: number }>(`SELECT symbol, SUM(qty) AS qty FROM orders WHERE account_id = ? AND status IN ('pending','working') AND side = 'sell' AND type = 'market' AND role = 'single' GROUP BY symbol`, accountId)
+    return {
+      id: accountId, name: acc.name, type: acc.type, cash: v.cash, equity: v.equity, buyingPower: Math.max(0, v.buyingPower - reserved(accountId)),
+      positions: v.positions.map((p) => ({ symbol: p.symbol, qty: p.qty, avg: p.avg })), pendingBuys: Object.fromEntries(pend.map((r) => [r.symbol, r.qty])), pendingSells: Object.fromEntries(sells.map((r) => [r.symbol, r.qty]))
+    }
+  }
+
   // ---------------------------------------------------------------- placing
   type NewOrder = Pick<OrderRow, 'role' | 'side' | 'type' | 'tif' | 'status'> & Partial<Pick<OrderRow, 'limit_price' | 'stop_price' | 'trail_amount' | 'trail_unit' | 'parent_id' | 'extreme' | 'expires_at'>>
   function insert(accountId: number, group: string, spec: OrderSpec, o: NewOrder, now: number): number {
@@ -307,6 +319,6 @@ export function createEngine(db: DatabaseSync, market: Market, clock: () => numb
     return events
   }
 
-  return { snapshot, place, cancel, modify, closePosition, reset, tick, process, values, positionQty: (symbol: string) => positionQty(activeAccount(), symbol) }
+  return { snapshot, view, place, cancel, modify, closePosition, reset, tick, process, values, positionQty: (symbol: string) => positionQty(activeAccount(), symbol) }
 }
 export type Engine = ReturnType<typeof createEngine>
