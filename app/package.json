@@ -9,9 +9,10 @@
     "build": "electron-vite build",
     "start": "env -u ELECTRON_RUN_AS_NODE electron-vite preview -- --no-sandbox",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "dist": "electron-vite build && electron-builder --publish never",
-    "dist:dir": "electron-vite build && electron-builder --dir --publish never",
+    "dist": "npm run licenses && electron-vite build && electron-builder --publish never",
+    "dist:dir": "npm run licenses && electron-vite build && electron-builder --dir --publish never",
     "selftest": "env -u ELECTRON_RUN_AS_NODE electron . --no-sandbox --self-test",
+    "licenses": "node scripts/licenses.mjs",
     "release": "scripts/release.sh"
   },
   "dependencies": {
@@ -40,12 +41,13 @@
     "name": "jaimie garner",
     "email": "pacificnm@gmail.com"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
   "desktopName": "trading-lab.desktop",
   "homepage": "https://github.com/pacificnm/trading-labs.app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pacificnm/trading-labs.app.git"
+    "url": "https://github.com/pacificnm/trading-labs.app.git",
+    "directory": "app"
   },
   "allowScripts": {
     "electron-winstaller@5.4.0": true,

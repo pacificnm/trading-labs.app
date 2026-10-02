@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Copy, Download, ExternalLink, RefreshCw, X } from 'lucide-react'
+import { Copy, Download, ExternalLink, FileText, RefreshCw, X } from 'lucide-react'
 import { toast } from '../toast'
 import Logo from './Logo'
 
@@ -40,6 +40,7 @@ export default function AboutDialog({ onClose }: { onClose: () => void }) {
                 ? <button className="btn primary" onClick={() => window.api.openExternal(a.repository)}><ExternalLink size={13} /> GitHub repository</button>
                 : <span className="muted" title="Set the repository field in package.json">GitHub repository: not configured yet</span>}
               <button className="btn" onClick={() => { navigator.clipboard.writeText(details); toast.success('Version details copied') }}><Copy size={13} /> Copy version info</button>
+              <button className="btn" onClick={async () => { const r = await window.api.openLicenses(); if (!r.ok) toast.error(r.error) }}><FileText size={13} /> Open-source licenses</button>
             </div>
             <div className="about-update">
               <div className="about-links">
@@ -53,7 +54,7 @@ export default function AboutDialog({ onClose }: { onClose: () => void }) {
               <label className="plan-toggle"><input type="checkbox" checked={auto} onChange={(e) => { setAuto(e.target.checked); window.api.setSetting('autoUpdateCheck', e.target.checked) }} /> Check for updates automatically (GitHub, once a day)</label>
             </div>
             <div className="about-credits muted">
-              <div><b>Built with</b> Electron, React, and TradingView Lightweight Charts™ (<a className="link" onClick={() => window.api.openExternal('https://www.tradingview.com/')}>tradingview.com</a>).</div>
+              <div><b>Built with</b> Electron, React, and TradingView Lightweight Charts™ (<a className="link" onClick={() => window.api.openExternal('https://www.tradingview.com/')}>tradingview.com</a>). Trading Lab is open source under the MIT License. TradingView Lightweight Charts™ Copyright (с) 2025 TradingView, Inc.</div>
               <div><b>Data</b> from Financial Modeling Prep (market data, fundamentals, news, disclosures) and Cboe delayed quotes (options). <b>Assistant</b> powered by Anthropic Claude.</div>
               <div>Educational software. Nothing here is investment advice, and paper trades use simulated fills.</div>
             </div>

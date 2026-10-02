@@ -160,6 +160,7 @@ const api = {
     ipcRenderer.on('update:available', h)
     return () => { ipcRenderer.removeListener('update:available', h) }
   },
+  openLicenses: () => ipcRenderer.invoke('app:licenses') as Promise<{ ok: true } | { ok: false; error: string }>,
   about: () => ipcRenderer.invoke('app:about') as Promise<{ name: string; description: string; version: string; packaged: boolean; license: string; electron: string; chromium: string; node: string; platform: string; arch: string; dataFolder: string; repository: string }>,
   quit: () => ipcRenderer.invoke('app:quit'),
   win: {

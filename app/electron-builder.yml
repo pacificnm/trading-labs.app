@@ -10,6 +10,12 @@ files:
   - out/**/*
   - build/icon.png
   - package.json
+# the MIT license and the third-party notices travel with the app (npm run licenses writes build/third-party-notices.txt)
+extraResources:
+  - from: ../LICENSE
+    to: LICENSE
+  - from: build/third-party-notices.txt
+    to: third-party-notices.txt
 asar: true
 npmRebuild: false
 electronVersion: 44.5.1

@@ -308,6 +308,13 @@ app.whenReady().then(() => {
   }
   // packaged builds only: a dev checkout is always "behind" its own tags. TRADING_UPDATE_CHECK=1 forces it for testing
   if (app.isPackaged || process.env['TRADING_UPDATE_CHECK']) { setTimeout(autoCheck, 20_000); setInterval(autoCheck, 24 * 3600 * 1000) }
+  // the third-party notices ship with the app (resources/ when installed, build/ in development after `npm run licenses`)
+  ipcMain.handle('app:licenses', async () => {
+    const file = app.isPackaged ? join(process.resourcesPath, 'third-party-notices.txt') : join(app.getAppPath(), 'build', 'third-party-notices.txt')
+    if (!existsSync(file)) return { ok: false as const, error: 'The notices file was not found. In a development copy, run npm run licenses first.' }
+    const err = await shell.openPath(file)
+    return err ? { ok: false as const, error: err } : { ok: true as const }
+  })
   ipcMain.handle('app:quit', () => app.quit())
   ipcMain.handle('win:close', (e) => win(e).close())
   ipcMain.handle('win:isMaximized', (e) => win(e).isMaximized())

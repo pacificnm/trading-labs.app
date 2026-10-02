@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trading Lab: learn to trade with paper money</title>
+  <meta name="description" content="Trading Lab is a desktop app for learning to trade with simulated money: charts, a paper brokerage account, a portfolio planner, a trading journal, a strategy library and a Claude assistant.">
+  <meta name="color-scheme" content="dark light">
+  <meta property="og:title" content="Trading Lab: learn to trade with paper money">
+  <meta property="og:description" content="Charts, a simulated brokerage account, a journal, a strategy library and a Claude assistant. No real money.">
+  <meta property="og:image" content="img/chart.png">
+  <link rel="icon" href="img/favicon.png" type="image/png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="top">
+    <div class="wrap bar">
+      <a class="brand" href="#top"><img src="img/icon.png" alt="" width="28" height="28"> Trading Lab</a>
+      <nav aria-label="Main">
+        <a href="#features">Features</a>
+        <a href="#screens">Screens</a>
+        <a href="#download">Download</a>
+        <a href="#honest">Limits</a>
+        <a class="gh" href="https://github.com/pacificnm/trading-labs.app" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="wrap hero-grid">
+        <div>
+          <p class="eyebrow">Educational software · no real money</p>
+          <h1>Learn to trade with paper money.</h1>
+          <p class="lead">Trading Lab is a desktop app with charts, a simulated brokerage account, a portfolio planner, a trading journal, a library of strategy lessons, and a <strong>Claude</strong> assistant that can see the chart you are looking at and teach from it.</p>
+          <div class="cta">
+            <a class="btn primary" href="#download" id="hero-download">Download</a>
+            <a class="btn" href="https://github.com/pacificnm/trading-labs.app" rel="noopener">View on GitHub</a>
+          </div>
+          <p class="small muted" id="hero-version">Windows, macOS and Linux.</p>
+        </div>
+        <a class="shot" href="img/chart.png" aria-label="Open the chart screenshot full size">
+          <img src="img/chart.png" width="1500" height="900" alt="The Trading Lab window: a candlestick chart with moving averages and volume, and the Claude panel on the right">
+        </a>
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="wrap">
+        <h2>Everything you need to practise, in one window</h2>
+        <p class="sub">Real market data, a simulated account and a teacher who can read your screen.</p>
+        <div class="cards">
+          <article class="card"><h3>Charts that keep up</h3><p>Candlestick, bar, line, area and Heikin Ashi charts from 1-minute to monthly, with 20+ studies, drawing tools, and live order lines you can drag. The chart refreshes itself while the market is open.</p></article>
+          <article class="card"><h3>A paper brokerage account</h3><p>Market, limit, stop, stop-limit and trailing orders, brackets and OCO, from a Think-or-Swim-style ticket. Fills come from real 1-minute bars. Keep several accounts that mirror your real ones.</p></article>
+          <article class="card"><h3>A portfolio planner</h3><p>Give each stock, ETF or mutual fund a target percentage and see how many shares your money buys. Track value and drift, link it to a paper account, and plan a partial sale to take profits.</p></article>
+          <article class="card"><h3>Size trades from risk</h3><p>A position calculator turns your risk, your own limits and the live price and ATR into a share count. A journal records the plan, your reasoning and the real result.</p></article>
+          <article class="card"><h3>Lessons built in</h3><p>40+ strategy lessons on candlesticks, chart patterns, trend, breakouts, day trading, long-term investing and trading psychology, with 60+ candlestick patterns and one-click chart setups.</p></article>
+          <article class="card"><h3>Research screens</h3><p>Quotes, analyst ratings, fundamentals, delayed options chains, symbol and market news, sector performance, a stock screener, and Senate and House trade disclosures.</p></article>
+          <article class="card"><h3>A Claude assistant</h3><p>Ask about your chart, your account, your journal or your portfolio. Claude can read the chart, draw on it and set up an order ticket for you to review. <strong>It can never place, change or cancel an order.</strong></p></article>
+          <article class="card"><h3>Yours to keep</h3><p>Everything is stored on your computer in one database, with one-click backup and restore. A full Help library, a built-in update check and a choice of default AI model are included.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="screens" class="section alt">
+      <div class="wrap">
+        <h2>A look around</h2>
+        <div class="gallery">
+          <figure><a href="img/portfolio.png"><img loading="lazy" src="img/portfolio.png" width="1500" height="780" alt="The Portfolio screen: five holdings with target percentages, prices and the shares the plan would buy"></a><figcaption><b>Portfolio.</b> Turn target percentages into shares, track value, and link it to a paper account.</figcaption></figure>
+          <figure><a href="img/strategies.png"><img loading="lazy" src="img/strategies.png" width="1500" height="900" alt="The Trading Strategies library with a lesson open"></a><figcaption><b>Strategy library.</b> Lessons with rules, practice, quizzes and one-click chart setups.</figcaption></figure>
+          <figure><a href="img/options.png"><img loading="lazy" src="img/options.png" width="1500" height="900" alt="An options chain with calls and puts, strikes and greeks"></a><figcaption><b>Options.</b> Delayed chains, greeks and the expected move, for learning.</figcaption></figure>
+          <figure><a href="img/journal.png"><img loading="lazy" src="img/journal.png" width="1500" height="900" alt="A trading journal entry with plan, reasoning and outcome"></a><figcaption><b>Journal.</b> Plan, reasoning and the real outcome, computed from your fills.</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="download" class="section">
+      <div class="wrap">
+        <h2>Download</h2>
+        <p class="sub" id="dl-status" aria-live="polite">Looking up the latest version…</p>
+        <div id="dl-grid" class="dl-grid" hidden></div>
+        <noscript><p>Turn on JavaScript to see the download buttons, or open the <a href="https://github.com/pacificnm/trading-labs.app/releases/latest">latest release on GitHub</a>.</p></noscript>
+        <p id="dl-fallback" class="small" hidden>Could not reach GitHub just now. Get the installers from the <a href="https://github.com/pacificnm/trading-labs.app/releases/latest" rel="noopener">latest release page</a>.</p>
+
+        <div class="two">
+          <div>
+            <h3>What you need</h3>
+            <ul>
+              <li>A <strong>Financial Modeling Prep</strong> API key for live market data. Without one the app runs on sample data and trading is switched off. Intraday history and some screens need a paid FMP plan.</li>
+              <li>An <strong>Anthropic</strong> API key for the Claude panel. It is optional: everything else works without it.</li>
+              <li>On Linux, a running keyring (gnome-keyring or KWallet) so the keys can be stored encrypted.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Installing</h3>
+            <ul>
+              <li><strong>Windows:</strong> run the installer. The app is not code-signed yet, so SmartScreen may warn: choose <em>More info</em>, then <em>Run anyway</em>.</li>
+              <li><strong>macOS:</strong> open the <code>.dmg</code> and drag the app to Applications. It is not notarized yet, so the first time, right-click it and choose <em>Open</em>. Choose Apple Silicon for an M-series Mac, Intel otherwise.</li>
+              <li><strong>Linux:</strong> make the AppImage executable and run it, or install the <code>.deb</code> with <code>sudo apt install ./file.deb</code>.</li>
+            </ul>
+          </div>
+        </div>
+        <p class="small muted">The app checks GitHub for updates (you can turn that off in About) and never installs anything by itself. The Windows and macOS builds are newer than the Linux one; if something does not work, please <a href="https://github.com/pacificnm/trading-labs.app/issues" rel="noopener">open an issue</a>.</p>
+      </div>
+    </section>
+
+    <section class="section alt" id="privacy">
+      <div class="wrap narrow">
+        <h2>Your data stays on your computer</h2>
+        <p>Accounts, orders, the journal, watchlists, portfolios and settings live in a single local database. Your API keys are stored encrypted in your system keyring when one is available, and your market data key is only ever sent to the data provider.</p>
+        <p>The app talks to <strong>Financial Modeling Prep</strong> (market data), <strong>Cboe</strong> (delayed options), <strong>Anthropic</strong> (the assistant, only when you chat) and <strong>GitHub</strong> (the update check). When you chat, your message, a summary of what is on screen and any tool results Claude asks for are sent to Anthropic.</p>
+      </div>
+    </section>
+
+    <section id="honest" class="section">
+      <div class="wrap narrow">
+        <h2>Honest limits</h2>
+        <ul>
+          <li><strong>Educational software, not investment advice.</strong> Nothing in the app or on this page tells you what to buy or sell.</li>
+          <li><strong>Paper trading is simpler than real trading.</strong> Fills come from 1-minute bars, with no commissions, slippage, partial fills, extended hours or market holidays, so paper results look better than real ones would. Real money also changes how people behave.</li>
+          <li><strong>Data has limits.</strong> Prices may be delayed depending on your data plan, options data is delayed and unofficial, and congressional trades are disclosed up to 45 days late.</li>
+          <li><strong>There is no live brokerage connection.</strong> The app never trades real money.</li>
+          <li><strong>AI can be wrong.</strong> Claude reads the same data you see and can still make mistakes. You make every decision.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <div class="links">
+        <a href="https://github.com/pacificnm/trading-labs.app" rel="noopener">Source on GitHub</a>
+        <a href="https://github.com/pacificnm/trading-labs.app/releases" rel="noopener">All releases</a>
+        <a href="https://github.com/pacificnm/trading-labs.app/issues" rel="noopener">Report an issue</a>
+      </div>
+      <p class="small muted">Built with Electron and React. Charts by <a href="https://www.tradingview.com/" rel="noopener">TradingView Lightweight Charts™</a> (Copyright (с) 2025 TradingView, Inc.). Market data from Financial Modeling Prep and Cboe. Assistant powered by Anthropic Claude. Not affiliated with any of them.</p>
+      <p class="small muted">Trading Lab is open source under the <a href="https://github.com/pacificnm/trading-labs.app/blob/main/LICENSE" rel="noopener">MIT License</a>: use it, change it and share it, with no warranty. Third-party licenses are listed in the app under About.</p>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>

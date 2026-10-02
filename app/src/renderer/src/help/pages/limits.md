@@ -74,7 +74,7 @@ If you later trade with real money:
 
 ## About the software
 
-- Trading Lab is a **personal project** and is provided **as is**, with no warranty. See **About → About Trading Lab…** for the version and credits.
+- Trading Lab is a **personal project**, open source under the **MIT License**, and is provided **as is**, with no warranty (the license says so in capital letters). See **About → About Trading Lab…** for the version and credits.
 - **Charts** are built with TradingView Lightweight Charts™.
 - **Market data and company information** come from Financial Modeling Prep, and **options data** from Cboe's delayed quotes. **Claude** is provided by Anthropic. These are separate companies, and their data and services are subject to their own terms.
 - **Platforms:** the app is developed and tested on Linux. Windows and macOS installers are built automatically for each release but have not been tested by the author, and they are not code-signed, so your system may warn you the first time.

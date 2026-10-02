@@ -34,7 +34,7 @@ A desktop app for **learning to trade with paper money**. It combines live-data 
 
 ## Help
 
-A full **Help library** is built in: 46 pages with screenshots and step-by-step instructions for every screen and feature, from first-time setup to reference material. Open it from **About → Help Contents** or press **F1**. The pages are Markdown files in `src/renderer/src/help/pages/`.
+A full **Help library** is built in: 46 pages with screenshots and step-by-step instructions for every screen and feature, from first-time setup to reference material. Open it from **About → Help Contents** or press **F1**. The pages are Markdown files in `app/src/renderer/src/help/pages/`.
 
 ## Requirements
 
@@ -46,7 +46,10 @@ A full **Help library** is built in: 46 pages with screenshots and step-by-step 
 
 ## Run it
 
+The repository has two parts: the desktop app in [`app/`](app/) and the public website in [`site/`](site/). The app's commands run from `app/`.
+
 ```bash
+cd app
 npm install
 npm run dev          # development, with hot reload
 ```
@@ -63,7 +66,9 @@ npm run dist:dir     # just the unpacked folder: release/linux-unpacked/trading-
 ```
 
 - AppImage: `chmod +x release/Trading-Lab-*.AppImage && ./release/Trading-Lab-*.AppImage`
-- Debian: `sudo apt install ./release/trading-lab_*.deb` (adds a menu entry and a `trading-lab` command)
+- Debian: `sudo apt install ./release/trading-lab_*.deb`
+
+(Both paths are inside `app/`.) (adds a menu entry and a `trading-lab` command)
 
 ### Releases and updates
 
@@ -72,10 +77,11 @@ Releases are published on GitHub and carry the Linux AppImage and `.deb` (x86-64
 To publish a release, from a clean `main`:
 
 ```bash
+cd app
 npm run release -- patch     # or minor / major
 ```
 
-That bumps `package.json`, commits, tags `vX.Y.Z` and pushes; the **Release** workflow (`.github/workflows/release.yml`) builds every platform and creates the GitHub release with generated notes. The tag must match the version in `package.json`.
+That bumps `app/package.json`, commits, tags `vX.Y.Z` and pushes; the **Release** workflow (`.github/workflows/release.yml`) builds every platform and creates the GitHub release with generated notes. The tag must match the version in `app/package.json`. The website needs no change: it reads the latest release itself.
 
 ### Check an install
 
@@ -111,17 +117,27 @@ That bumps `package.json`, commits, tags `vX.Y.Z` and pushes; the **Release** wo
 ## Project layout
 
 ```
-src/main/       Electron main process: window, SQLite, FMP client and cache, paper-trading engine,
-                journal, strategies, watchlists, options feed, the Claude chat loop
-src/preload/    the typed bridge exposed to the UI (window.api)
-src/renderer/   React UI: screens (views/), components, chart code, Claude's tool handlers (chart/tools.ts)
-src/shared/     pure code used by both sides: types, order analysis, position sizing, options math,
-                the list of Claude tools and the system prompt
-build/          app icon          docs/   screenshots
+app/            the Trading Lab desktop app (everything that ships in a release)
+  src/main/       Electron main process: window, SQLite, FMP client and cache, paper-trading engine,
+                  journal, strategies, watchlists, portfolios, options feed, backups, updates, the Claude chat loop
+  src/preload/    the typed bridge exposed to the UI (window.api)
+  src/renderer/   React UI: screens (views/), components, chart code, Claude's tool handlers (chart/tools.ts), the Help library (help/)
+  src/shared/     pure code used by both sides: types, order analysis, position sizing, portfolio maths, options math,
+                  the list of Claude tools and the system prompt
+  build/          app icon     scripts/   release script and a stand-in market data server for testing
+site/           the public website: a static site with links to GitHub and the latest release (see site/README.md)
+docs/           screenshots used by this README
+.github/        the release workflow (builds the installers on five runners and publishes the release)
 ```
 
-Architecture notes, conventions and gotchas for contributors (and for Claude Code) are in [CLAUDE.md](CLAUDE.md).
+Architecture notes, conventions and gotchas for contributors (and for Claude Code) are in [CLAUDE.md](CLAUDE.md) (the repository) and [app/CLAUDE.md](app/CLAUDE.md) (the app).
 
 ## License
 
-No license yet: all rights reserved for now. The code is public to read, but it is not licensed for reuse.
+Trading Lab is open source under the [MIT License](LICENSE): you may use, copy, modify, merge, publish, distribute, sublicense and sell it, as long as the copyright and license notice stay with it. It comes with no warranty. That covers the app, the lessons and Help pages, and the website in this repository.
+
+It includes third-party software under its own licenses. The installers carry **LICENSE** and **third-party-notices.txt** in their resources folder, and **About → Open-source licenses** opens the notices. To regenerate them from the installed dependencies, run `npm run licenses` in `app/`. Electron and Chromium add their own notices (`LICENSE.electron.txt`, `LICENSES.chromium.html`).
+
+Charts use TradingView Lightweight Charts™, under the Apache License 2.0, which asks that its attribution is shown and linked to <https://www.tradingview.com/>. The About dialog and the website both do that.
+
+Contributions are welcome: by contributing you agree that your work is released under the same MIT License.
